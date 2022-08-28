@@ -1,7 +1,9 @@
 {
     "name": "Unity.GameFramework",
-    "rootNamespace": "",
-    "references": [],
+    "rootNamespace": "GameFramework",
+    "references": [
+        "GUID:e16a851ff45a46b42918f227b09bf21e"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": true,
