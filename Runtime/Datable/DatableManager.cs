@@ -47,6 +47,12 @@ namespace GameFramework.Datable
             gameDatableType.EnsureObjectRefrenceType<IGameDatable>();
             return datables.ContainsKey(gameDatableType);
         }
+
+        public void Release()
+        {
+            
+        }
+
         /// <summary>
         /// 移除游戏数据表
         /// </summary>
@@ -60,6 +66,10 @@ namespace GameFramework.Datable
             }
             Creater.Release(datable);
             datables.Remove(gameDatableType);
+        }
+
+        public void Update()
+        {
         }
     }
 }

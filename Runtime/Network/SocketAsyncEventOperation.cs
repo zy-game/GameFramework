@@ -12,6 +12,7 @@ namespace GameFramework.Network
         private DataStream dataStream;
         private IChannel Channel;
         private TaskCompletionSource _waiting;
+        private GameFrameworkAction<SocketAsyncEventOperation> callback;
 
 
         public Task GetSocketAsyncTask()
@@ -39,51 +40,20 @@ namespace GameFramework.Network
         protected override void OnCompleted(SocketAsyncEventArgs e)
         {
             base.OnCompleted(e);
-            switch (e.LastOperation)
-            {
-                case SocketAsyncOperation.Connect:
-                    // Channel.DoConnectFinished(this);
-                    break;
-                case SocketAsyncOperation.Receive:
-                case SocketAsyncOperation.ReceiveFrom:
-                    // Channel.DoRecvieFinished(this);
-                    break;
-                case SocketAsyncOperation.Send:
-                case SocketAsyncOperation.SendTo:
-                    // Channel.DoWriteFinished(this);
-                    break;
-                case SocketAsyncOperation.Disconnect:
-                    // Channel.DoShutdownFinished(this);
-                    break;
-            }
+            callback(this);
+            _waiting.TryComplete();
+            Creater.Release(this);
         }
 
-        public bool EnsureAsyncOperationState()
+        internal void SetCompletionCallback(GameFrameworkAction<SocketAsyncEventOperation> completionCallback)
         {
-            Exception exception = null;
-            if (SocketError != SocketError.Success)
-            {
-                exception = new SocketException((int)SocketError);
-            }
-            if (LastOperation == SocketAsyncOperation.Connect)
-            {
-                return exception != null;
-            }
-            if (BytesTransferred <= 0)
-            {
-                exception = GameFrameworkException.GenerateFormat("remote server is closed the channel connected");
-            }
-            if (exception != null)
-            {
-                _waiting?.SetException(exception);
-            }
-            return exception != null;
+            callback = completionCallback;
         }
 
         public void SetBuffer(DataStream stream)
         {
             dataStream = stream;
-            SetBuffer(dataStream.bytes, 0, dataStream.position);
+            SetBuffer(dataStream.bytes, 0, dataStream.length);
         }
 
         public DataStream GetDataStream()
@@ -93,19 +63,11 @@ namespace GameFramework.Network
 
         public void Release()
         {
+            callback = null;
             Channel = null;
             Creater.Release(dataStream);
             dataStream = null;
             _waiting = null;
-        }
-
-        internal void SetCompletedTask()
-        {
-            if (_waiting != null)
-            {
-                _waiting.Complete();
-                _waiting = null;
-            }
         }
     }
 }

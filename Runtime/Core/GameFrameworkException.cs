@@ -23,6 +23,16 @@ namespace GameFramework
         /// <summary>
         /// 创建一个异常对象
         /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static GameFrameworkException Generate<T>() where T : Exception, new()
+        {
+            return Generate(new T());
+        }
+
+        /// <summary>
+        /// 创建一个异常对象
+        /// </summary>
         /// <param name="format">格式化字符串</param>
         /// <param name="messages">参数</param>
         /// <returns>异常对象</returns>

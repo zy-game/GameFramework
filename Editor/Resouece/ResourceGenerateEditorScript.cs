@@ -6,7 +6,7 @@ namespace GameFramework.Editor.ResoueceEditor
 {
     public class ResourceGenerateEditorScript : EditorWindow
     {
-        private ResourceDetailed currentResourceDetailedData;
+        private BundleList currentResourceDetailedData;
 
         public void OnEnable()
         {

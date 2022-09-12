@@ -6,8 +6,6 @@ using System.Threading.Tasks;
 
 namespace GameFramework.Resource
 {
-
-
     /// <summary>
     /// 资源管理器
     /// </summary>
@@ -68,18 +66,11 @@ namespace GameFramework.Resource
         void DeleteFile(string fileName);
 
         /// <summary>
-        /// 检查本地资源状态
-        /// </summary>
-        /// <param name="remoteResourceDetailedData">远程资源列表</param>
-        /// <returns>资源更新数据</returns>
-        ResourceUpdateDataed EnsureResourceDelatiledStated(ResourceDetailed remoteResourceDetailedData);
-
-        /// <summary>
         /// 下载需要更新的资源
         /// </summary>
         /// <param name="resourceUpdateDataed">资源更新数据</param>
         /// <param name="progres">进度回调</param>
         /// <param name="completed">完成回调</param>
-        void DownloadResourceUpdate(ResourceUpdateDataed resourceUpdateDataed, GameFrameworkAction<float> progres, GameFrameworkAction completed);
+        Task DownloadResourceUpdate(string url, GameFrameworkAction<float> progres);
     }
 }

@@ -3,15 +3,26 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using UnityEngine;
 
 namespace GameFramework
 {
     /// <summary>
     /// 游戏运行时
     /// </summary>
-    public sealed class Runtime : IRefrence
+    public sealed class Runtime : MonoBehaviour, IRefrence
     {
         private static List<IGameModule> modules = new List<IGameModule>();
+
+        private void Awake()
+        {
+            LoadGameModule<Event.EventManager>();
+            LoadGameModule<Resource.ResourceManager>();
+            LoadGameModule<Config.ConfigManager>();
+            LoadGameModule<Datable.DatableManager>();
+            LoadGameModule<Game.GameManager>();
+            LoadGameModule<Network.NetworkManager>();
+        }
         public void Release()
         {
 

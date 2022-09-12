@@ -9,9 +9,9 @@ namespace GameFramework.Game
     public enum GameState : byte
     {
         None,
-        Initialize,
+        Init,
         Runing,
-        Stoping,
+        Stoped,
         Destory,
     }
     public interface IGame : IRefrence
@@ -42,5 +42,18 @@ namespace GameFramework.Game
     }
     public interface IGameManager : IGameModule
     {
+    }
+
+    public sealed class GameManager : IGameManager
+    {
+        public void Release()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Update()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

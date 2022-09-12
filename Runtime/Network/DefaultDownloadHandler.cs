@@ -42,8 +42,8 @@ namespace GameFramework.Network
 
         private bool isCancel;
         private bool isPauseDownload;
-        private GameFrameworkAction completedCallback;
         private GameFrameworkAction<float> progresCallback;
+        private GameFrameworkAction<IDownloadHandle> completedCallback;
         private MultiThreadDownloadChannel multiThreadDownloadChannel;
 
         /// <summary>
@@ -169,7 +169,7 @@ namespace GameFramework.Network
                 }
                 if (completedCallback != null)
                 {
-                    completedCallback();
+                    completedCallback(this);
                 }
                 return;
             }
@@ -188,7 +188,7 @@ namespace GameFramework.Network
         /// <param name="completed">下载完成回调</param>
         /// <param name="progres">下载进度更新回调</param>
         /// <returns>下载句柄</returns>
-        public static DefaultDownloadHandler Generate(string url, int form, int to, GameFrameworkAction completed, GameFrameworkAction<float> progres)
+        public static DefaultDownloadHandler Generate(string url, int form, int to, GameFrameworkAction<IDownloadHandle> completed, GameFrameworkAction<float> progres)
         {
             DefaultDownloadHandler defaultDownloadHandler = Creater.Generate<DefaultDownloadHandler>();
             defaultDownloadHandler.to = to;

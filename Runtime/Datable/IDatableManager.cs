@@ -5,7 +5,7 @@ namespace GameFramework.Datable
     /// <summary>
     /// 数据管理器
     /// </summary>
-    public interface IDatableManager
+    public interface IDatableManager : IGameModule
     {
         /// <summary>
         /// 生成游戏数据表

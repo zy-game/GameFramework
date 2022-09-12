@@ -142,7 +142,7 @@ namespace GameFramework.Network
                 SingleThreadDownloadChannel singleThreadDownloadChannel = SingleThreadDownloadChannel.Generate(url, form, to);
                 singleThreadDownloadChannels.Add(singleThreadDownloadChannel);
                 await singleThreadDownloadChannel.Start();
-                singleThreadDownloadChannel.stream.CopyTo(stream);
+                singleThreadDownloadChannel.stream.Write(stream);
                 isDone = true;
                 isError = singleThreadDownloadChannel.isError;
                 return;
@@ -178,7 +178,7 @@ namespace GameFramework.Network
             {
                 foreach (var singleThreadDownloadChannel in singleThreadDownloadChannels)
                 {
-                    singleThreadDownloadChannel.stream.CopyTo(stream);
+                    singleThreadDownloadChannel.stream.Write(stream);
                 }
             }
             isDone = true;

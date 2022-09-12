@@ -16,9 +16,19 @@ namespace GameFramework.Network
         /// <summary>
         /// 连接远程地址
         /// </summary>
-        /// <param name="channelBuilder">链接参数</param>
+        /// <param name="name">连接名</param>
+        /// <param name="addres">链接地址</param>
+        /// <param name="port">连接端口</param>
+        /// <typeparam name="TChannel">链接类型</typeparam>
         /// <returns>异步任务</returns>
         Task Connect<TChannel>(string name, string addres, ushort port) where TChannel : IChannel;
+
+        /// <summary>
+        /// 断开链接
+        /// </summary>
+        /// <param name="name">连接名</param>
+        /// <returns></returns>
+        Task Disconnect(string name);
 
         /// <summary>
         /// 将数据写入缓冲区并立即发送数据
@@ -52,10 +62,7 @@ namespace GameFramework.Network
         /// </summary>
         /// <param name="url">远程地址</param>
         /// <returns>返回数据</returns>
-        public string Request(string url)
-        {
-            return Request(url);
-        }
+        string Request(string url);
 
         /// <summary>
         /// 请求远端数据
@@ -63,10 +70,7 @@ namespace GameFramework.Network
         /// <param name="url">远程地址</param>
         /// <param name="header">表头</param>
         /// <returns>返回数据</returns>
-        public string Request(string url, Dictionary<string, string> header)
-        {
-            return Request(url, header);
-        }
+        string Request(string url, Dictionary<string, string> header);
 
         /// <summary>
         /// 请求远端数据
@@ -83,10 +87,7 @@ namespace GameFramework.Network
         /// <param name="url">远程地址</param>
         /// <typeparam name="T">返回数据类型</typeparam>
         /// <returns>返回数据</returns>
-        public T Request<T>(string url)
-        {
-            return Request<T>(url, null);
-        }
+        T Request<T>(string url);
 
         /// <summary>
         /// 请求远端数据
@@ -95,10 +96,7 @@ namespace GameFramework.Network
         /// <param name="header">表头</param>
         /// <typeparam name="T">返回数据类型</typeparam>
         /// <returns>返回数据</returns>
-        public T Request<T>(string url, Dictionary<string, string> header)
-        {
-            return Request<T>(url, header, null);
-        }
+        T Request<T>(string url, Dictionary<string, string> header);
 
         /// <summary>
         /// 请求远端数据
@@ -108,25 +106,14 @@ namespace GameFramework.Network
         /// <param name="data">参数</param>
         /// <typeparam name="T">返回数据类型</typeparam>
         /// <returns>返回数据</returns>
-        public T Request<T>(string url, Dictionary<string, string> header, Dictionary<string, object> data)
-        {
-            string responseData = Request(url, header, data);
-            if (string.IsNullOrEmpty(responseData))
-            {
-                return default;
-            }
-            return CatJson.JsonParser.ParseJson<T>(responseData);
-        }
+        T Request<T>(string url, Dictionary<string, string> header, Dictionary<string, object> data);
 
         /// <summary>
         /// 提交表单数据
         /// </summary>
         /// <param name="url">远程地址</param>
         /// <returns>返回数据</returns>
-        public string PostData(string url)
-        {
-            return PostData(url);
-        }
+        string PostData(string url);
 
         /// <summary>
         /// 提交表单数据
@@ -134,10 +121,7 @@ namespace GameFramework.Network
         /// <param name="url">远程地址</param>
         /// <param name="header">表头数据</param>
         /// <returns>返回数据</returns>
-        public string PostData(string url, Dictionary<string, string> header)
-        {
-            return PostData(url, header);
-        }
+        string PostData(string url, Dictionary<string, string> header);
 
         /// <summary>
         /// 提交表单数据
@@ -154,10 +138,7 @@ namespace GameFramework.Network
         /// <param name="url">远程地址</param>
         /// <typeparam name="T">返回数据类型</typeparam>
         /// <returns>返回数据对象</returns>
-        public T PostData<T>(string url)
-        {
-            return PostData<T>(url, null);
-        }
+        T PostData<T>(string url);
 
         /// <summary>
         /// 提交表单数据
@@ -166,10 +147,7 @@ namespace GameFramework.Network
         /// <param name="header">表头数据</param>
         /// <typeparam name="T">返回数据类型</typeparam>
         /// <returns>返回数据对象</returns>
-        public T PostData<T>(string url, Dictionary<string, string> header)
-        {
-            return PostData<T>(url, header, null);
-        }
+        T PostData<T>(string url, Dictionary<string, string> header);
 
         /// <summary>
         /// 提交表单数据
@@ -179,37 +157,116 @@ namespace GameFramework.Network
         /// <param name="data">表单数据</param>
         /// <typeparam name="T">返回数据类型</typeparam>
         /// <returns>返回数据对象</returns>
-        public T PostData<T>(string url, Dictionary<string, string> header, Dictionary<string, object> data)
-        {
-            string result = PostData(url, header, data);
-            return CatJson.JsonParser.ParseJson<T>(result);
-        }
+        T PostData<T>(string url, Dictionary<string, string> header, Dictionary<string, object> data);
 
         /// <summary>
-        /// 获取链接长度
+        /// 请求远端数据
         /// </summary>
         /// <param name="url">远程地址</param>
-        /// <returns>长度</returns>
-        private long GetContentLength(string url)
-        {
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
-            request.Method = "HEAD";
-            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
-            long length = response.ContentLength;
-            request.Abort();
-            response.Close();
-            return length;
-        }
+        /// <returns>返回数据</returns>
+        Task<string> RequestAsync(string url);
+
+        /// <summary>
+        /// 请求远端数据
+        /// </summary>
+        /// <param name="url">远程地址</param>
+        /// <param name="header">表头</param>
+        /// <returns>返回数据</returns>
+        Task<string> RequestAsync(string url, Dictionary<string, string> header);
+
+        /// <summary>
+        /// 请求远端数据
+        /// </summary>
+        /// <param name="url">远程地址</param>
+        /// <param name="header">表头</param>
+        /// <param name="data">参数</param>
+        /// <returns>返回数据</returns>
+        Task<string> RequestAsync(string url, Dictionary<string, string> header, Dictionary<string, object> data);
+
+        /// <summary>
+        /// 请求远端数据
+        /// </summary>
+        /// <param name="url">远程地址</param>
+        /// <typeparam name="T">返回数据类型</typeparam>
+        /// <returns>返回数据</returns>
+        Task<T> RequestAsync<T>(string url);
+
+        /// <summary>
+        /// 请求远端数据
+        /// </summary>
+        /// <param name="url">远程地址</param>
+        /// <param name="header">表头</param>
+        /// <typeparam name="T">返回数据类型</typeparam>
+        /// <returns>返回数据</returns>
+        Task<T> RequestAsync<T>(string url, Dictionary<string, string> header);
+
+        /// <summary>
+        /// 请求远端数据
+        /// </summary>
+        /// <param name="url">远程地址</param>
+        /// <param name="header">表头</param>
+        /// <param name="data">参数</param>
+        /// <typeparam name="T">返回数据类型</typeparam>
+        /// <returns>返回数据</returns>
+        Task<T> RequestAsync<T>(string url, Dictionary<string, string> header, Dictionary<string, object> data);
+
+        /// <summary>
+        /// 提交表单数据
+        /// </summary>
+        /// <param name="url">远程地址</param>
+        /// <returns>返回数据</returns>
+        Task<string> PostDataAsync(string url);
+
+        /// <summary>
+        /// 提交表单数据
+        /// </summary>
+        /// <param name="url">远程地址</param>
+        /// <param name="header">表头数据</param>
+        /// <returns>返回数据</returns>
+        Task<string> PostDataAsync(string url, Dictionary<string, string> header);
+
+        /// <summary>
+        /// 提交表单数据
+        /// </summary>
+        /// <param name="url">远程地址</param>
+        /// <param name="header">表头数据</param>
+        /// <param name="data">提交数据</param>
+        /// <returns>返回数据</returns>
+        Task<string> PostDataAsync(string url, Dictionary<string, string> header, Dictionary<string, object> data);
+
+        /// <summary>
+        /// 提交表单数据
+        /// </summary>
+        /// <param name="url">远程地址</param>
+        /// <typeparam name="T">返回数据类型</typeparam>
+        /// <returns>返回数据对象</returns>
+        Task<T> PostDataAsync<T>(string url);
+
+        /// <summary>
+        /// 提交表单数据
+        /// </summary>
+        /// <param name="url">远程地址</param>
+        /// <param name="header">表头数据</param>
+        /// <typeparam name="T">返回数据类型</typeparam>
+        /// <returns>返回数据对象</returns>
+        Task<T> PostDataAsync<T>(string url, Dictionary<string, string> header);
+
+        /// <summary>
+        /// 提交表单数据
+        /// </summary>
+        /// <param name="url">远程地址</param>
+        /// <param name="header">表头数据</param>
+        /// <param name="data">表单数据</param>
+        /// <typeparam name="T">返回数据类型</typeparam>
+        /// <returns>返回数据对象</returns>
+        Task<T> PostDataAsync<T>(string url, Dictionary<string, string> header, Dictionary<string, object> data);
 
         /// <summary>
         /// 下载数据
         /// </summary>
         /// <param name="url">远程地址</param>
         /// <returns>下载句柄</returns>
-        public IDownloadHandle Download(string url, GameFrameworkAction completed, GameFrameworkAction<float> progres)
-        {
-            return Download(url, 0, completed, progres);
-        }
+        IDownloadHandle Download(string url, GameFrameworkAction<IDownloadHandle> completed, GameFrameworkAction<float> progres);
 
         /// <summary>
         /// 下载数据
@@ -217,10 +274,7 @@ namespace GameFramework.Network
         /// <param name="url">远程地址</param>
         /// <param name="form">起始偏移</param>
         /// <returns>下载句柄</returns>
-        public IDownloadHandle Download(string url, int form, GameFrameworkAction completed, GameFrameworkAction<float> progres)
-        {
-            return Download(url, form, (int)GetContentLength(url), completed, progres);
-        }
+        IDownloadHandle Download(string url, int form, GameFrameworkAction<IDownloadHandle> completed, GameFrameworkAction<float> progres);
 
         /// <summary>
         /// 下载数据
@@ -229,6 +283,6 @@ namespace GameFramework.Network
         /// <param name="form">起始偏移</param>
         /// <param name="to">结束位置</param>
         /// <returns>下载句柄</returns>
-        public IDownloadHandle Download(string url, int form, int to, GameFrameworkAction completed, GameFrameworkAction<float> progres);
+        IDownloadHandle Download(string url, int form, int to, GameFrameworkAction<IDownloadHandle> completed, GameFrameworkAction<float> progres);
     }
 }
