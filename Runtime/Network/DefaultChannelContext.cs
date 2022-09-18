@@ -35,7 +35,7 @@ namespace GameFramework.Network
 
         public static DefaultChannelContext Generate(IChannel channel)
         {
-            DefaultChannelContext defaultChannelContext = Creater.Generate<DefaultChannelContext>();
+            DefaultChannelContext defaultChannelContext = Loader.Generate<DefaultChannelContext>();
             defaultChannelContext.Channel = channel;
             return defaultChannelContext;
         }

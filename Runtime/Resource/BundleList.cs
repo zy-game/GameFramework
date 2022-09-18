@@ -27,7 +27,7 @@ namespace GameFramework.Resource
         /// </summary>
         public void Release()
         {
-            bundles.ForEach(Creater.Release);
+            bundles.ForEach(Loader.Release);
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace GameFramework.Resource
 
         public static BundleList Generate(string data)
         {
-            BundleList list = Creater.Generate<BundleList>();
+            BundleList list = Loader.Generate<BundleList>();
             list.bundles = CatJson.JsonParser.ParseJson<List<BundleData>>(data);
             return list;
         }
@@ -125,7 +125,7 @@ namespace GameFramework.Resource
         /// </summary>
         public void Release()
         {
-            assets.ForEach(Creater.Release);
+            assets.ForEach(Loader.Release);
             assets.Clear();
         }
 

@@ -50,7 +50,7 @@ namespace GameFramework
 
         public static DataStream Generate(int length)
         {
-            DataStream stream = Creater.Generate<DataStream>();
+            DataStream stream = Loader.Generate<DataStream>();
             stream.EnsureSizeAndResize(length);
             return stream;
         }
@@ -136,26 +136,6 @@ namespace GameFramework
         public void Write(int desOffset, byte[] bytes, int scrOffset, int length)
         {
             EnsureSizeAndResize(length);
-            Cover(position, bytes, scrOffset, length);
-            position += length;
-        }
-
-        public void Cover(int desOffset, byte[] bytes)
-        {
-            Cover(desOffset, bytes, 0);
-        }
-
-        public void Cover(int desOffset, byte[] bytes, int scrOffset)
-        {
-            Cover(desOffset, bytes, scrOffset, bytes.Length);
-        }
-
-        public void Cover(int desOffset, byte[] bytes, int scrOffset, int length)
-        {
-            if (desOffset + length > buffer.Length)
-            {
-                throw GameFrameworkException.Generate<IndexOutOfRangeException>();
-            }
             Array.Copy(bytes, scrOffset, buffer, desOffset, length);
         }
 
@@ -459,7 +439,7 @@ namespace GameFramework
             {
                 throw GameFrameworkException.Generate<IndexOutOfRangeException>();
             }
-            Cover(offset, BitConverter.GetBytes(value));
+            Write(offset, BitConverter.GetBytes(value), 0, sizeof(float));
         }
 
         public double ReadDouble()
@@ -491,7 +471,7 @@ namespace GameFramework
             {
                 throw GameFrameworkException.Generate<IndexOutOfRangeException>();
             }
-            Cover(offset, BitConverter.GetBytes(value));
+            Write(offset, BitConverter.GetBytes(value), 0, sizeof(double));
         }
 
         public string ReadString()
@@ -527,7 +507,7 @@ namespace GameFramework
                 throw GameFrameworkException.Generate<IndexOutOfRangeException>();
             }
             SetInt32(position, bytes.Length);
-            Cover(offset, bytes);
+            Write(offset, bytes, 0, bytes.Length);
         }
     }
 }

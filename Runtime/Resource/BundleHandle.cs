@@ -57,7 +57,7 @@ namespace GameFramework.Resource
         {
             foreach (var item in handles.Values)
             {
-                Creater.Release(item);
+                Loader.Release(item);
             }
             handles.Clear();
             bundle.Unload(true);

@@ -57,10 +57,10 @@ namespace GameFramework.Network
         {
             foreach (var singleThreadDownloadChannel in singleThreadDownloadChannels)
             {
-                Creater.Release(singleThreadDownloadChannel);
+                Loader.Release(singleThreadDownloadChannel);
             }
             singleThreadDownloadChannels.Clear();
-            Creater.Release(stream);
+            Loader.Release(stream);
             stream = null;
             url = null;
             form = 0;
@@ -171,7 +171,7 @@ namespace GameFramework.Network
                 if (item.isError)
                 {
                     isError = true;
-                    Creater.Release(item);
+                    Loader.Release(item);
                 }
             }
             if (!isError)
@@ -193,7 +193,7 @@ namespace GameFramework.Network
         /// <returns>多线程下载器</returns>
         public static MultiThreadDownloadChannel Generate(string url, int offset, int end)
         {
-            MultiThreadDownloadChannel multiThreadDownloadChannel = Creater.Generate<MultiThreadDownloadChannel>();
+            MultiThreadDownloadChannel multiThreadDownloadChannel = Loader.Generate<MultiThreadDownloadChannel>();
             multiThreadDownloadChannel.url = url;
             multiThreadDownloadChannel.form = offset;
             multiThreadDownloadChannel.to = end;

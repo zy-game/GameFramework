@@ -50,7 +50,7 @@ namespace GameFramework
             {
                 return gameModule;
             }
-            gameModule = (IGameModule)Creater.Generate(gameModuleType);
+            gameModule = (IGameModule)Loader.Generate(gameModuleType);
             modules.Add(gameModule);
             return gameModule;
         }
@@ -105,7 +105,7 @@ namespace GameFramework
             {
                 return;
             }
-            Creater.Release(gameModule);
+            Loader.Release(gameModule);
             modules.Remove(gameModule);
         }
 

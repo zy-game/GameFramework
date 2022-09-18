@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 
 namespace GameFramework
 {
-    public sealed class Creater
+    public sealed class Loader
     {
         private static Dictionary<Type, Queue<IRefrence>> refrenceCollction = new Dictionary<Type, Queue<IRefrence>>();
         public static T Generate<T>() where T : IRefrence

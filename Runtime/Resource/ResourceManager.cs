@@ -100,7 +100,7 @@ namespace GameFramework.Resource
             {
                 return handle.LoadHandleSync(name);
             }
-            handle = Creater.Generate<BundleHandle>();
+            handle = Loader.Generate<BundleHandle>();
             handle.LoadBundleSync(this, bundleData.name);
             bundleHandlers.Add(handle);
             return handle.LoadHandleSync(name);
@@ -123,7 +123,7 @@ namespace GameFramework.Resource
             {
                 return await handle.LoadHandleAsync(name);
             }
-            handle = Creater.Generate<BundleHandle>();
+            handle = Loader.Generate<BundleHandle>();
             await handle.LoadBundleAsync(this, bundleData.name);
             bundleHandlers.Add(handle);
             return await handle.LoadHandleAsync(name);
@@ -209,11 +209,11 @@ namespace GameFramework.Resource
         /// </summary>
         public void Release()
         {
-            Creater.Release(bundleList);
+            Loader.Release(bundleList);
             bundleList = null;
             foreach (var item in bundleHandlers)
             {
-                Creater.Release(item);
+                Loader.Release(item);
             }
             bundleHandlers.Clear();
         }
@@ -239,7 +239,7 @@ namespace GameFramework.Resource
                 {
                     continue;
                 }
-                Creater.Release(bundleCacheList[i]);
+                Loader.Release(bundleCacheList[i]);
                 bundleCacheList.Remove(bundleCacheList[i]);
             }
         }

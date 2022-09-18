@@ -43,8 +43,8 @@ namespace GameFramework.Resource
         /// </summary>
         public void Release()
         {
-            downloads.ForEach(Creater.Release);
-            completeds.ForEach(Creater.Release);
+            downloads.ForEach(Loader.Release);
+            completeds.ForEach(Loader.Release);
             progres = null;
             taskCompletionSource = null;
             urls.Clear();
@@ -142,7 +142,7 @@ namespace GameFramework.Resource
 
         internal static UpdateAssetList Generate(TaskCompletionSource taskCompletionSource, GameFrameworkAction<float> progres)
         {
-            UpdateAssetList updateAssetList = Creater.Generate<UpdateAssetList>();
+            UpdateAssetList updateAssetList = Loader.Generate<UpdateAssetList>();
             updateAssetList.taskCompletionSource = taskCompletionSource;
             updateAssetList.progres = progres;
             return updateAssetList;

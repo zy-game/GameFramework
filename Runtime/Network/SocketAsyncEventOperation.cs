@@ -42,7 +42,7 @@ namespace GameFramework.Network
             base.OnCompleted(e);
             callback(this);
             _waiting.TryComplete();
-            Creater.Release(this);
+            Loader.Release(this);
         }
 
         internal void SetCompletionCallback(GameFrameworkAction<SocketAsyncEventOperation> completionCallback)
@@ -65,7 +65,7 @@ namespace GameFramework.Network
         {
             callback = null;
             Channel = null;
-            Creater.Release(dataStream);
+            Loader.Release(dataStream);
             dataStream = null;
             _waiting = null;
         }

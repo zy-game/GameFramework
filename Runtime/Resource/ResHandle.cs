@@ -74,7 +74,7 @@ namespace GameFramework.Resource
         /// <returns>资源句柄</returns>
         internal static ResHandle GenerateResHandle(BundleHandle data, Object asset)
         {
-            ResHandle handle = Creater.Generate<ResHandle>();
+            ResHandle handle = Loader.Generate<ResHandle>();
             handle.basic = asset;
             handle.bundle = data;
             handle.caches = new Queue<Object>();

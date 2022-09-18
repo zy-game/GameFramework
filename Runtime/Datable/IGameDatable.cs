@@ -5,6 +5,10 @@ namespace GameFramework.Datable
     /// </summary>
     public interface IGameDatable : IRefrence
     {
-
+        /// <summary>
+        /// 数据表唯一ID
+        /// </summary>
+        /// <value></value>
+        string guid { get; }
     }
 }

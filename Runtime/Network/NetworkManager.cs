@@ -19,7 +19,7 @@ namespace GameFramework.Network
 
         public async Task Connect<TChannel>(string name, string addres, ushort port) where TChannel : IChannel
         {
-            TChannel channel = Creater.Generate<TChannel>();
+            TChannel channel = Loader.Generate<TChannel>();
             await channel.Connect(name, addres, port);
             if (!channel.Actived)
             {
@@ -167,12 +167,12 @@ namespace GameFramework.Network
 
         public void Release()
         {
-            downloadHandles.ForEach(Creater.Release);
+            downloadHandles.ForEach(Loader.Release);
             downloadHandles.Clear();
             foreach (var item in channels.Values)
             {
                 item.Disconnect();
-                Creater.Release(item);
+                Loader.Release(item);
             }
             channels.Clear();
         }
@@ -285,7 +285,7 @@ namespace GameFramework.Network
             }
             DataStream stream = DataStream.Generate();
             serialize.Serialize(stream);
-            Creater.Release(serialize);
+            Loader.Release(serialize);
             return channel.WriteAsync(stream);
         }
 

@@ -103,9 +103,9 @@ namespace GameFramework.Network
         {
             progresCallback = null;
             completedCallback = null;
-            Creater.Release(multiThreadDownloadChannel);
+            Loader.Release(multiThreadDownloadChannel);
             multiThreadDownloadChannel = null;
-            Creater.Release(stream);
+            Loader.Release(stream);
             stream = null;
             isCancel = false;
             isDone = false;
@@ -190,7 +190,7 @@ namespace GameFramework.Network
         /// <returns>下载句柄</returns>
         public static DefaultDownloadHandler Generate(string url, int form, int to, GameFrameworkAction<IDownloadHandle> completed, GameFrameworkAction<float> progres)
         {
-            DefaultDownloadHandler defaultDownloadHandler = Creater.Generate<DefaultDownloadHandler>();
+            DefaultDownloadHandler defaultDownloadHandler = Loader.Generate<DefaultDownloadHandler>();
             defaultDownloadHandler.to = to;
             defaultDownloadHandler.url = url;
             defaultDownloadHandler.form = form;

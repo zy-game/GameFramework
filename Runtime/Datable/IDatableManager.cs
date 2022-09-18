@@ -12,63 +12,45 @@ namespace GameFramework.Datable
         /// </summary>
         /// <typeparam name="T">数据表类型</typeparam>
         /// <returns>游戏数据表</returns>
-        public T GenerateGameDatable<T>() where T : IGameDatable
-        {
-            return (T)GenerateGameDatable(typeof(T));
-        }
+        T CreateDatable<T>() where T : IGameDatable;
 
         /// <summary>
         /// 生成游戏数据表
         /// </summary>
         /// <param name="gameDatableType">数据表类型</param>
         /// <returns>游戏数据表</returns>
-        IGameDatable GenerateGameDatable(Type gameDatableType);
+        IGameDatable CreateDatable(Type gameDatableType);
 
-        /// <summary>
-        /// 是否存在游戏数据表
-        /// </summary>
-        /// <typeparam name="T">数据表类型</typeparam>
-        /// <returns></returns>
-        public void IsHaveGameDatable<T>() where T : IGameDatable
-        {
-            IsHaveGameDatable(typeof(T));
-        }
         /// <summary>
         /// 是否存在游戏数据表
         /// </summary>
         /// <typeparam name="gameDatableType">数据表类型</typeparam>
         /// <returns></returns>
-        bool IsHaveGameDatable(Type gameDatableType);
+        bool IsHaveGameDatable(string guid);
 
         /// <summary>
         /// 获取游戏数据表
         /// </summary>
         /// <typeparam name="T">数据表类型</typeparam>
         /// <returns>游戏数据表</returns>
-        public T GetGameDatable<T>() where T : IGameDatable
-        {
-            return (T)GetGameDatable(typeof(T));
-        }
+        T GetGameDatable<T>(string guid) where T : IGameDatable;
+
         /// <summary>
         /// 获取游戏数据表
         /// </summary>
         /// <typeparam name="gameDatableType">数据表类型</typeparam>
         /// <returns>游戏数据表</returns>
-        IGameDatable GetGameDatable(Type gameDatableType);
+        IGameDatable GetGameDatable(string guid);
 
         /// <summary>
         /// 移除游戏数据表
         /// </summary>
         /// <typeparam name="T">数据表类型</typeparam>
-        public void RemoveGameDatable<T>() where T : IGameDatable
-        {
-            RemoveGameDatable(typeof(T));
-        }
+        void RemoveGameDatable(string guid);
 
         /// <summary>
-        /// 移除游戏数据表
+        /// 清理所有数据表
         /// </summary>
-        /// <param name="gameDatableType">数据表类型</param>
-        void RemoveGameDatable(Type gameDatableType);
+        void Clear();
     }
 }

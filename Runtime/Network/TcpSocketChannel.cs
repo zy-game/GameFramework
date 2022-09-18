@@ -31,7 +31,7 @@ namespace GameFramework.Network
         {
             Name = name;
             mSocket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-            SocketAsyncEventOperation operation = Creater.Generate<SocketAsyncEventOperation>();
+            SocketAsyncEventOperation operation = Loader.Generate<SocketAsyncEventOperation>();
             operation.RemoteEndPoint = new IPEndPoint(IPAddress.Parse(addres), port);
             operation.SetCompletionCallback(OnConnectCompletionCallback);
             if (!mSocket.ConnectAsync(operation))
@@ -43,7 +43,7 @@ namespace GameFramework.Network
 
         public Task Disconnect()
         {
-            SocketAsyncEventOperation operation = Creater.Generate<SocketAsyncEventOperation>();
+            SocketAsyncEventOperation operation = Loader.Generate<SocketAsyncEventOperation>();
             operation.SetCompletionCallback(OnDisconnectCompletionCallback);
             if (!mSocket.DisconnectAsync(operation))
             {
@@ -55,7 +55,7 @@ namespace GameFramework.Network
         private void OnRecvied()
         {
             DataStream stream = DataStream.Generate();
-            SocketAsyncEventOperation operation = Creater.Generate<SocketAsyncEventOperation>();
+            SocketAsyncEventOperation operation = Loader.Generate<SocketAsyncEventOperation>();
             operation.SetBuffer(stream);
             operation.SetCompletionCallback(OnRecvieCompletionCallback);
             if (!mSocket.ReceiveAsync(operation))
@@ -89,7 +89,7 @@ namespace GameFramework.Network
                 {
                     break;
                 }
-                Creater.Release(operation);
+                Loader.Release(operation);
             }
             waitingWritedOperations.Clear();
             channelHandler.ChannelInactive(channelContext);
@@ -97,7 +97,7 @@ namespace GameFramework.Network
 
         public Task WriteAsync(DataStream stream)
         {
-            SocketAsyncEventOperation operation = Creater.Generate<SocketAsyncEventOperation>();
+            SocketAsyncEventOperation operation = Loader.Generate<SocketAsyncEventOperation>();
             operation.SetBuffer(stream);
             operation.SetCompletionCallback(OnWriteCompletionCallback);
             waitingWritedOperations.Enqueue(operation);
@@ -111,8 +111,8 @@ namespace GameFramework.Network
                 return;
             }
             mRecvieStream = DataStream.Generate();
-            channelHandler = Creater.Generate<THandler>();
-            channelContext = Creater.Generate<DefaultChannelContext>();
+            channelHandler = Loader.Generate<THandler>();
+            channelContext = Loader.Generate<DefaultChannelContext>();
             waitingWritedOperations = new Queue<SocketAsyncEventOperation>();
             channelHandler.ChannelActive(channelContext);
             OnRecvied();

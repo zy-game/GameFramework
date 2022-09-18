@@ -54,7 +54,7 @@ namespace GameFramework.Network
         /// </summary>
         public void Release()
         {
-            Creater.Release(stream);
+            Loader.Release(stream);
             stream = null;
             url = string.Empty;
             form = 0;
@@ -183,7 +183,7 @@ namespace GameFramework.Network
         /// <returns>下载器</returns>
         public static SingleThreadDownloadChannel Generate(string url, int form, int to)
         {
-            SingleThreadDownloadChannel singleThreadDownloadChannel = Creater.Generate<SingleThreadDownloadChannel>();
+            SingleThreadDownloadChannel singleThreadDownloadChannel = Loader.Generate<SingleThreadDownloadChannel>();
             singleThreadDownloadChannel.to = to;
             singleThreadDownloadChannel.url = url;
             singleThreadDownloadChannel.form = form;
