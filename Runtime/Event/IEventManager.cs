@@ -1,173 +1,106 @@
-using System.Collections.Generic;
-using System;
-
 namespace GameFramework.Event
 {
-    /// <summary>
-    /// ÊÂ¼şÊı¾İ
-    /// </summary>
-    public interface IEventData : IRefrence
-    {
-
-    }
 
     /// <summary>
-    /// ÊÂ¼ş¹ÜÀíÆ÷
+    /// äº‹ä»¶ç®¡ç†å™¨
     /// </summary>
     public interface IEventManager : IGameModule
     {
         /// <summary>
-        /// ¶©ÔÄÊÂ¼ş
+        /// è®¢é˜…äº‹ä»¶
         /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
-        /// <param name="callback">ÊÂ¼ş»Øµ÷</param>
+        /// <param name="eventId">äº‹ä»¶ID</param>
+        /// <param name="callback">äº‹ä»¶å›è°ƒ</param>
         void Subscribe(string eventId, GameFrameworkAction callback);
 
         /// <summary>
-        /// ¶©ÔÄÊÂ¼ş
+        /// è®¢é˜…äº‹ä»¶
         /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
-        /// <param name="callback">ÊÂ¼ş»Øµ÷</param>
-        /// <typeparam name="T">»Øµ÷²ÎÊıÀàĞÍ</typeparam>
+        /// <param name="eventId">äº‹ä»¶ID</param>
+        /// <param name="callback">äº‹ä»¶å›è°ƒ</param>
+        /// <typeparam name="T">å›è°ƒå‚æ•°ç±»å‹</typeparam>
         void Subscribe<T>(string eventId, GameFrameworkAction<T> callback);
 
         /// <summary>
-        /// ¶©ÔÄÊÂ¼ş
+        /// è®¢é˜…äº‹ä»¶
         /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
-        /// <param name="callback">ÊÂ¼ş»Øµ÷</param>
+        /// <param name="eventId">äº‹ä»¶ID</param>
+        /// <param name="callback">äº‹ä»¶å›è°ƒ</param>
         void Subscribe(string eventId, GameFrameworkAction<IEventData> callback);
 
         /// <summary>
-        /// Ö´ĞĞÊÂ¼ş
+        /// æ‰§è¡Œäº‹ä»¶
         /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
+        /// <param name="eventId">äº‹ä»¶ID</param>
+        void UnsafeExecuted(string eventId);
+
+        /// <summary>
+        /// æ‰§è¡Œäº‹ä»¶
+        /// </summary>
+        /// <param name="eventId">äº‹ä»¶ID</param>
+        /// <param name="eventData">äº‹ä»¶å‚æ•°</param>
+        /// <typeparam name="T">äº‹ä»¶å‚æ•°ç±»å‹</typeparam>
+        void UnsafeExecuted<T>(string eventId, T eventData);
+
+        /// <summary>
+        /// æ‰§è¡Œäº‹ä»¶
+        /// </summary>
+        /// <param name="eventId">äº‹ä»¶ID</param>
+        /// <param name="eventData">äº‹ä»¶å‚æ•°</param>
+        void UnsafeExecuted(string eventId, IEventData eventData);
+
+        /// <summary>
+        /// æ‰§è¡Œäº‹ä»¶
+        /// </summary>
+        /// <param name="eventId">äº‹ä»¶ID</param>
         void Executed(string eventId);
 
         /// <summary>
-        /// Ö´ĞĞÊÂ¼ş
+        /// æ‰§è¡Œäº‹ä»¶
         /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
-        /// <param name="eventData">ÊÂ¼ş²ÎÊı</param>
-        /// <typeparam name="T">ÊÂ¼ş²ÎÊıÀàĞÍ</typeparam>
+        /// <param name="eventId">äº‹ä»¶ID</param>
+        /// <param name="eventData">äº‹ä»¶å‚æ•°</param>
+        /// <typeparam name="T">äº‹ä»¶å‚æ•°ç±»å‹</typeparam>
         void Executed<T>(string eventId, T eventData);
 
         /// <summary>
-        /// Ö´ĞĞÊÂ¼ş
+        /// æ‰§è¡Œäº‹ä»¶
         /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
-        /// <param name="eventData">ÊÂ¼ş²ÎÊı</param>
+        /// <param name="eventId">äº‹ä»¶ID</param>
+        /// <param name="eventData">äº‹ä»¶å‚æ•°</param>
         void Executed(string eventId, IEventData eventData);
 
         /// <summary>
-        /// È¡Ïû¶©ÔÄÊÂ¼ş
+        /// å–æ¶ˆæ‰€æœ‰è®¢é˜…äº‹ä»¶
         /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
+        /// <param name="eventId">äº‹ä»¶ID</param>
         void Unsubscribe(string eventId);
 
         /// <summary>
-        /// ÇåÀíËùÓĞ¶©ÔÄ
+        /// è®¢é˜…äº‹ä»¶
+        /// </summary>
+        /// <param name="eventId">äº‹ä»¶ID</param>
+        /// <param name="callback">äº‹ä»¶å›è°ƒ</param>
+        void Unsubscribe(GameFrameworkAction callback);
+
+        /// <summary>
+        /// è®¢é˜…äº‹ä»¶
+        /// </summary>
+        /// <param name="eventId">äº‹ä»¶ID</param>
+        /// <param name="callback">äº‹ä»¶å›è°ƒ</param>
+        /// <typeparam name="T">å›è°ƒå‚æ•°ç±»å‹</typeparam>
+        void Unsubscribe<T>(GameFrameworkAction<T> callback);
+
+        /// <summary>
+        /// è®¢é˜…äº‹ä»¶
+        /// </summary>
+        /// <param name="eventId">äº‹ä»¶ID</param>
+        /// <param name="callback">äº‹ä»¶å›è°ƒ</param>
+        void Unsubscribe(GameFrameworkAction<IEventData> callback);
+
+        /// <summary>
+        /// æ¸…ç†æ‰€æœ‰è®¢é˜…
         /// </summary>
         void Clear();
-    }
-
-    public sealed class EventManager : IEventManager
-    {
-        private Dictionary<string, List<GameFrameworkAction>> events;
-
-        
-        /// <summary>
-        /// ÇåÀíËùÓĞ¶©ÔÄ
-        /// </summary>
-        public void Clear()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Ö´ĞĞÊÂ¼ş
-        /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
-        public void Executed(string eventId)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Ö´ĞĞÊÂ¼ş
-        /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
-        /// <param name="eventData">ÊÂ¼ş²ÎÊı</param>
-        /// <typeparam name="T">ÊÂ¼ş²ÎÊıÀàĞÍ</typeparam>
-        public void Executed<T>(string eventId, T eventData)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Ö´ĞĞÊÂ¼ş
-        /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
-        /// <param name="eventData">ÊÂ¼ş²ÎÊı</param>
-        public void Executed(string eventId, IEventData eventData)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// »ØÊÕ
-        /// </summary>
-        public void Release()
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// ¶©ÔÄÊÂ¼ş
-        /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
-        /// <param name="callback">ÊÂ¼ş»Øµ÷</param>
-        public void Subscribe(string eventId, GameFrameworkAction callback)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// ¶©ÔÄÊÂ¼ş
-        /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
-        /// <param name="callback">ÊÂ¼ş»Øµ÷</param>
-        /// <typeparam name="T">»Øµ÷²ÎÊıÀàĞÍ</typeparam>
-        public void Subscribe<T>(string eventId, GameFrameworkAction<T> callback)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// ¶©ÔÄÊÂ¼ş
-        /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
-        /// <param name="callback">ÊÂ¼ş»Øµ÷</param>
-        public void Subscribe(string eventId, GameFrameworkAction<IEventData> callback)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// È¡Ïû¶©ÔÄÊÂ¼ş
-        /// </summary>
-        /// <param name="eventId">ÊÂ¼şID</param>
-        public void Unsubscribe(string eventId)
-        {
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// ÂÖÑ¯ÊÂ¼ş¹ÜÀíÆ÷
-        /// </summary>
-        public void Update()
-        {
-            throw new NotImplementedException();
-        }
     }
 }

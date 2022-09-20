@@ -80,8 +80,14 @@ namespace GameFramework.Datable
             datables.Clear();
         }
 
+        /// <summary>
+        /// 轮询
+        /// </summary>
         public void Update() { }
 
+        /// <summary>
+        /// 回收数据管理器
+        /// </summary>
         public void Release()
         {
             Clear();

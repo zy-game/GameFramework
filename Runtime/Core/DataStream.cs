@@ -43,6 +43,13 @@ namespace GameFramework
             position = 0;
         }
 
+        public static DataStream Generate(byte[] bytes)
+        {
+            DataStream stream = Loader.Generate<DataStream>();
+            stream.buffer = bytes;
+            return stream;
+        }
+
         public static DataStream Generate()
         {
             return Generate(4096);
