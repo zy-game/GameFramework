@@ -1,4 +1,4 @@
-namespace GameFramework.Event
+namespace GameFramework.Events
 {
 
     /// <summary>

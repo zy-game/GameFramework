@@ -1,9 +1,9 @@
 ﻿using System.Security.Cryptography.X509Certificates;
 using System;
 using System.Collections.Generic;
+using GameFramework.Config;
 namespace GameFramework.Resource
 {
-
     /// <summary>
     /// 资源列表
     /// </summary>
@@ -116,9 +116,19 @@ namespace GameFramework.Resource
         public string owner;
 
         /// <summary>
+        /// 打包时间
+        /// </summary>
+        public string time;
+
+        /// <summary>
         /// 资源列表
         /// </summary>
         public List<AssetData> assets;
+
+        public BundleData()
+        {
+            assets = new List<AssetData>();
+        }
 
         /// <summary>
         /// 回收

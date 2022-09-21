@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System;
 
-namespace GameFramework.Event
+namespace GameFramework.Events
 {
     /// <summary>
     /// ??????

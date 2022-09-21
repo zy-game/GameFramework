@@ -1,6 +1,6 @@
 using System;
 
-namespace GameFramework.Event
+namespace GameFramework.Events
 {
     /// <summary>
     /// 事件数据

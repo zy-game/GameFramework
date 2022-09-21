@@ -10,22 +10,32 @@ namespace GameFramework
     /// <summary>
     /// 游戏运行时
     /// </summary>
-    public sealed class Runtime : MonoBehaviour, IRefrence
+    public sealed class Runtime : IRefrence
     {
         private static List<IGameModule> modules = new List<IGameModule>();
 
-        private void Awake()
+        [RuntimeInitializeOnLoadMethod]
+        private static void Initialize()
         {
-            LoadGameModule<Event.EventManager>();
+            LoadGameModule<Events.EventManager>();
             LoadGameModule<Resource.ResourceManager>();
             LoadGameModule<Config.ConfigManager>();
             LoadGameModule<Datable.DatableManager>();
             LoadGameModule<Game.GameManager>();
             LoadGameModule<Network.NetworkManager>();
         }
+
         public void Release()
         {
 
+        }
+
+        /// <summary>
+        /// 关闭运行时
+        /// </summary>
+        public static void Shutdown()
+        {
+            modules.ForEach(Loader.Release);
         }
 
         /// <summary>

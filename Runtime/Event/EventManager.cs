@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace GameFramework.Event
+namespace GameFramework.Events
 {
     /// <summary>
     /// 事件管理器
