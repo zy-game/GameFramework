@@ -76,7 +76,7 @@ namespace GameFramework.Game
             {
                 throw GameFrameworkException.GenerateFormat("the guid is already exsit:{0}", guid);
             }
-            GameEntity gameEntity = GameEntity.Generate(guid);
+            GameEntity gameEntity = GameEntity.Generate(guid, this);
             entitys.Add(guid, gameEntity);
             return gameEntity;
         }

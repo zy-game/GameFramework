@@ -15,6 +15,12 @@ namespace GameFramework.Game
         string guid { get; }
 
         /// <summary>
+        /// 所属游戏
+        /// </summary>
+        /// <value></value>
+        IGame owner { get; }
+
+        /// <summary>
         /// 添加组件
         /// </summary>
         /// <typeparam name="T"></typeparam>

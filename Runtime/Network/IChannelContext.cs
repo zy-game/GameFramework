@@ -3,38 +3,38 @@ using System.Threading.Tasks;
 namespace GameFramework.Network
 {
     /// <summary>
-    /// ÍøÂçÁ¬½Ó
+    /// è¿æ¥ä¸Šä¸‹æ–‡
     /// </summary>
     public interface IChannelContext : IRefrence
     {
         /// <summary>
-        /// Á¬½Ó¶ÔÏó
+        /// ç½‘ç»œè¿æ¥
         /// </summary>
         /// <value></value>
         IChannel Channel { get; }
 
         /// <summary>
-        /// ¶Ï¿ªÁ¬½Ó
+        /// å…³é—­è¿æ¥
         /// </summary>
         /// <returns></returns>
         Task Disconnect();
 
         /// <summary>
-        /// Òì²½Ğ´ÈëÊı¾İ
+        /// å†™å…¥æ•°æ®
         /// </summary>
-        /// <param name="stream">ĞèÒª·¢ËÍµÄÊı¾İ</param>
+        /// <param name="stream">æ•°æ®æµ</param>
         /// <returns></returns>
         Task WriteAsync(DataStream stream);
 
         /// <summary>
-        /// Á¢¼´·¢ËÍÊı¾İ
+        /// ç«‹å³å‘é€æ•°æ®
         /// </summary>
         void Flush();
 
         /// <summary>
-        /// ½«Êı¾İĞ´ÈëÁ¬½Ó»º³åÇø£¬²¢Á¢¼´·¢ËÍÊı¾İ
+        /// å†™å…¥æ•°æ®å¹¶ç«‹å³å‘é€
         /// </summary>
-        /// <param name="stream">ĞèÒª·¢ËÍµÄÊı¾İ</param>
+        /// <param name="stream">æ•°æ®æµ</param>
         /// <returns></returns>
         Task WriteAndFlushAsync(DataStream stream);
     }

@@ -18,6 +18,12 @@ namespace GameFramework.Game
         /// <value></value>
         public string guid { get; private set; }
 
+        /// <summary>
+        /// 所属游戏
+        /// </summary>
+        /// <value></value>
+        public IGame owner { get; private set; }
+
         public GameEntity()
         {
             components = new Dictionary<Type, IComponent>();
@@ -90,10 +96,11 @@ namespace GameFramework.Game
             return components.Values.ToArray();
         }
 
-        internal static GameEntity Generate(string guid)
+        internal static GameEntity Generate(string guid, IGame game)
         {
             GameEntity entity = Loader.Generate<GameEntity>();
             entity.guid = guid;
+            entity.owner = game;
             return entity;
         }
 

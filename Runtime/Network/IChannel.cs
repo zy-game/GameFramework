@@ -4,46 +4,46 @@ using System.Threading.Tasks;
 namespace GameFramework.Network
 {
     /// <summary>
-    /// Á¬½Ó¶ÔÏó
+    /// ç½‘ç»œè¿æ¥
     /// </summary>
     public interface IChannel : IRefrence
     {
         /// <summary>
-        /// Á¬½ÓÃû
+        /// è¿æ¥å
         /// </summary>
         /// <value></value>
         string Name { get; }
 
         /// <summary>
-        /// ÊÇ·ñ¼¤»î
+        /// æ˜¯å¦æ¿€æ´»
         /// </summary>
         /// <value></value>
         bool Actived { get; }
 
         /// <summary>
-        /// Á¬½ÓÔ¶³ÌµØÖ·
+        /// è¿æ¥
         /// </summary>
-        /// <param name="name">Á¬½ÓÃû</param>
-        /// <param name="addres">Ô¶³ÌµØÖ·</param>
-        /// <param name="port">Ô¶³Ì¶Ë¿Ú</param>
+        /// <param name="name">è¿æ¥å</param>
+        /// <param name="addres">åœ°å€</param>
+        /// <param name="port">ç«¯å£</param>
         /// <returns></returns>
         Task Connect(string name, string addres, ushort port);
 
         /// <summary>
-        /// ¶Ï¿ªÁ¬½Ó
+        /// å…³é—­è¿æ¥
         /// </summary>
         /// <returns></returns>
         Task Disconnect();
 
         /// <summary>
-        /// ½«Êı¾İĞ´ÈëÁ¬½Ó»º³åÇø£¬µÈ´ı·¢ËÍ
+        /// å°†æ•°æ®å†™å…¥ç¼“å†²åŒºç­‰å¾…å‘é€
         /// </summary>
         /// <param name="stream"></param>
         /// <returns></returns>
         Task WriteAsync(DataStream stream);
 
         /// <summary>
-        /// Á¢¼´½«»º³åÇøµÄÊı¾İ·¢ËÍµ½Ô¶¶Ë
+        /// ç«‹å³å°†ç¼“å†²åŒºä¸­çš„æ•°æ®å‘é€åˆ°è¿œç«¯
         /// </summary>
         void Flush();
     }
