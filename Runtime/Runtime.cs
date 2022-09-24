@@ -14,6 +14,9 @@ namespace GameFramework
     {
         private static List<IGameModule> modules = new List<IGameModule>();
 
+        public const string HOTFIX_FILE_LIST_NAME = "hotfixFileList.ini";
+        public const string BASIC_FILE_LIST_NAME = "basicFileList.ini";
+
         [RuntimeInitializeOnLoadMethod]
         private static void Initialize()
         {

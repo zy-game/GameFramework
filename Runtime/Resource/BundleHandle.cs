@@ -7,16 +7,16 @@ using Object = UnityEngine.Object;
 namespace GameFramework.Resource
 {
     /// <summary>
-    /// ×ÊÔ´°ü¾ä±ú
+    /// èµ„æºåŒ…å¥æŸ„
     /// </summary>
     public sealed class BundleHandle : IRefrence
     {
         /// <summary>
-        /// bundle°ü
+        /// èµ„æºåŒ…
         /// </summary>
         private AssetBundle bundle;
         /// <summary>
-        /// ×ÊÔ´»º´æ
+        /// å·²ç»åŠ è½½çš„èµ„æºå¥æŸ„
         /// </summary>
         private Dictionary<string, ResHandle> handles;
         public string name
@@ -32,18 +32,18 @@ namespace GameFramework.Resource
         }
 
         /// <summary>
-        /// ÒıÓÃ¼ÆÊı
+        /// å¼•ç”¨è®¡æ•°
         /// </summary>
         /// <value></value>
         public int refCount { get; private set; }
 
         /// <summary>
-        /// Ğ¶ÔØ¼ÆÊ±
+        /// å€’è®¡æ—¶
         /// </summary>
         private DateTime time;
 
         /// <summary>
-        /// ×ÊÔ´°ü¾ä±ú¹¹Ôìº¯Êı
+        /// æ„é€ å‡½æ•°
         /// </summary>
         public BundleHandle()
         {
@@ -51,7 +51,7 @@ namespace GameFramework.Resource
         }
 
         /// <summary>
-        /// »ØÊÕ
+        /// å›æ”¶èµ„æºåŒ…
         /// </summary>
         public void Release()
         {
@@ -64,10 +64,10 @@ namespace GameFramework.Resource
         }
 
         /// <summary>
-        /// ¼ÓÔØ×ÊÔ´¾ä±ú
+        /// åŠ è½½èµ„æº
         /// </summary>
-        /// <param name="name">×ÊÔ´Ãû</param>
-        /// <returns>×ÊÔ´¾ä±ú</returns>
+        /// <param name="name">èµ„æºå</param>
+        /// <returns>èµ„æºå¥æŸ„</returns>
         internal Task<ResHandle> LoadHandleAsync(string name)
         {
             TaskCompletionSource<ResHandle> waiting = new TaskCompletionSource<ResHandle>();
@@ -85,10 +85,10 @@ namespace GameFramework.Resource
         }
 
         /// <summary>
-        /// ¼ÓÔØ×ÊÔ´¾ä±ú
+        /// åŠ è½½èµ„æº
         /// </summary>
-        /// <param name="name">×ÊÔ´Ãû</param>
-        /// <returns>×ÊÔ´¾ä±ú</returns>
+        /// <param name="name">èµ„æºå</param>
+        /// <returns>èµ„æºå¥æŸ„</returns>
         internal ResHandle LoadHandleSync(string name)
         {
             Object asset = bundle.LoadAsset(name);
@@ -97,10 +97,10 @@ namespace GameFramework.Resource
         }
 
         /// <summary>
-        /// ¼ÓÔØ×ÊÔ´°ü
+        /// åŠ è½½èµ„æºåŒ…
         /// </summary>
-        /// <param name="resourceManager">×ÊÔ´¹ÜÀíÆ÷</param>
-        /// <param name="name">×ÊÔ´°üÃû</param>
+        /// <param name="resourceManager">èµ„æºç®¡ç†å™¨</param>
+        /// <param name="name">èµ„æºåŒ…å</param>
         internal void LoadBundleSync(ResourceManager resourceManager, string name)
         {
             DataStream stream = resourceManager.ReadFileSync(name);
@@ -112,11 +112,11 @@ namespace GameFramework.Resource
         }
 
         /// <summary>
-        /// ¼ÓÔØ×ÊÔ´°ü
+        /// åŠ è½½èµ„æºåŒ…
         /// </summary>
-        /// <param name="resourceManager">×ÊÔ´¹ÜÀíÆ÷</param>
-        /// <param name="name">×ÊÔ´°üÃû</param>
-        /// <returns>¼ÓÔØÈÎÎñ</returns>
+        /// <param name="resourceManager">èµ„æºç®¡ç†å™¨</param>
+        /// <param name="name">èµ„æºåŒ…å</param>
+        /// <returns>åŠ è½½ä»»åŠ¡</returns>
         internal async Task LoadBundleAsync(ResourceManager resourceManager, string name)
         {
             DataStream stream = await resourceManager.ReadFileAsync(name);
@@ -140,7 +140,7 @@ namespace GameFramework.Resource
         }
 
         /// <summary>
-        /// ÊÇ·ñ¿ÉÒÔĞ¶ÔØ×ÊÔ´
+        /// æ˜¯å¦å¯ä»¥å¸è½½èµ„æºåŒ…
         /// </summary>
         /// <returns></returns>
         internal bool CanUnload()
@@ -149,7 +149,7 @@ namespace GameFramework.Resource
         }
 
         /// <summary>
-        /// »ØÊÕ×ÊÔ´
+        /// å‡å°‘èµ„æºè®¡æ•°
         /// </summary>
         internal void ReleaseObject()
         {

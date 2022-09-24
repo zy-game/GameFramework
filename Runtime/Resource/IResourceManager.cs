@@ -44,6 +44,22 @@ namespace GameFramework.Resource
         Task<DataStream> ReadFileAsync(string fileName);
 
         /// <summary>
+        /// 读取文件数据
+        /// </summary>
+        /// <param name="fileName">文件名</param>
+        /// <returns>数据流</returns>
+        /// <exception cref="System.IO.FileNotFoundException">文件不存在</exception>
+        T ReadFileSync<T>(string fileName);
+
+        /// <summary>
+        /// 读取文件数据
+        /// </summary>
+        /// <param name="fileName">文件名</param>
+        /// <returns>数据流</returns>
+        /// <exception cref="System.IO.FileNotFoundException">文件不存在</exception>
+        Task<T> ReadFileAsync<T>(string fileName);
+
+        /// <summary>
         /// 写入文件数据
         /// </summary>
         /// <param name="fileName">文件名</param>
@@ -71,6 +87,6 @@ namespace GameFramework.Resource
         /// <param name="resourceUpdateDataed">资源更新数据</param>
         /// <param name="progres">进度回调</param>
         /// <param name="completed">完成回调</param>
-        Task DownloadResourceUpdate(string url, GameFrameworkAction<float> progres);
+        Task<bool> DownloadResourceUpdate(string url, GameFrameworkAction<float> progres);
     }
 }

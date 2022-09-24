@@ -5,6 +5,11 @@ namespace GameFramework.Network
     /// </summary>
     public interface IDownloadHandle : IRefrence
     {
+        /// <summary>
+        /// 文件名
+        /// </summary>
+        /// <value></value>
+        string name { get; }
         /// 下载结束位置
         /// </summary>
         int to { get; }

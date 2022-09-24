@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using GameFramework.Config;
+using System.Linq;
 namespace GameFramework.Resource
 {
     /// <summary>
@@ -52,7 +53,7 @@ namespace GameFramework.Resource
         {
             if (GetBundleData(bundleData.name) != null)
             {
-                return;
+                throw GameFrameworkException.Generate("the bundle is already exsit");
             }
             bundles.Add(bundleData);
         }
@@ -64,7 +65,7 @@ namespace GameFramework.Resource
         /// <returns></returns>
         public BundleData GetBundleData(string name)
         {
-            return bundles.Find(x => x.name == name);
+            return bundles.AsParallel().Where(x => x.name == name).FirstOrDefault();
         }
 
         /// <summary>
@@ -74,19 +75,17 @@ namespace GameFramework.Resource
         /// <returns></returns>
         public BundleData GetBundleDataWithAsset(string assetName)
         {
-            return bundles.Find(x => x.GetAssetData(assetName) != null);
+            return bundles.AsParallel().Where(x => x.HasAssetData(assetName)).FirstOrDefault();
         }
 
         public override string ToString()
         {
-            return CatJson.JsonParser.ToJson(bundles);
+            return CatJson.JsonParser.ToJson(this);
         }
 
         public static BundleList Generate(string data)
         {
-            BundleList list = Loader.Generate<BundleList>();
-            list.bundles = CatJson.JsonParser.ParseJson<List<BundleData>>(data);
-            return list;
+            return CatJson.JsonParser.ParseJson<BundleList>(data);
         }
     }
 
@@ -101,14 +100,14 @@ namespace GameFramework.Resource
         public string name;
 
         /// <summary>
-        /// 资源地址
-        /// </summary>
-        public string url;
-
-        /// <summary>
         /// 特征码
         /// </summary>
         public uint crc32;
+
+        /// <summary>
+        /// 资源版本
+        /// </summary>
+        public uint version;
 
         /// <summary>
         /// 所属对象
@@ -118,7 +117,7 @@ namespace GameFramework.Resource
         /// <summary>
         /// 打包时间
         /// </summary>
-        public string time;
+        public long time;
 
         /// <summary>
         /// 资源列表
@@ -169,11 +168,16 @@ namespace GameFramework.Resource
         /// <param name="assetData"></param>
         public void Add(AssetData assetData)
         {
-            if (GetAssetData(assetData.name) != null)
+            if (HasAssetData(assetData.name))
             {
                 return;
             }
             assets.Add(assetData);
+        }
+
+        public bool HasAssetData(string assetName)
+        {
+            return assets.AsParallel().Where(x => x.name == assetName).FirstOrDefault() != default;
         }
     }
 

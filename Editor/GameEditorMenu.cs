@@ -11,6 +11,18 @@ namespace GameFramework.Editor
         {
             EditorWindow.GetWindow(typeof(ResoueceEditor.ResourceGenerateEditorScript), false, "Resource Generate", true);
         }
-    }
 
+
+        [MenuItem("GameFramework/Clear EditorPrefs")]
+        public static void ClearEditorPrefs()
+        {
+            EditorPrefs.DeleteAll();
+        }
+
+        [MenuItem("GameFramework/Clear PlayerPrefs")]
+        public static void ClearPlayerPrefs()
+        {
+            PlayerPrefs.DeleteAll();
+        }
+    }
 }

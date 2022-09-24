@@ -43,44 +43,11 @@ namespace GameFramework.Resource
         /// <param name="resourceUpdateDataed">更新列表</param>
         /// <param name="progres">更新进度回调</param>
         /// <param name="completed">更新完成回调</param>
-        public async Task DownloadResourceUpdate(string url, GameFrameworkAction<float> progres)
+        public async Task<bool> DownloadResourceUpdate(string url, GameFrameworkAction<float> progres)
         {
-            string remoteBundleList = await Runtime.GetGameModule<Network.NetworkManager>().RequestAsync(url);
-            if (string.IsNullOrEmpty(remoteBundleList))
-            {
-                throw GameFrameworkException.Generate("download remote bundle list failur");
-            }
-            BundleList remoteResourceDetailedData = BundleList.Generate(remoteBundleList);
-            DataStream stream = await ReadFileAsync("BundleList.ini");
-            if (stream != null)
-            {
-                bundleList = BundleList.Generate(stream.ToString());
-            }
-
-            TaskCompletionSource taskCompletionSource = new TaskCompletionSource();
-            UpdateAssetList updateAssetList = UpdateAssetList.Generate(taskCompletionSource, progres);
-            List<BundleData> needUpdateList = updateAssetList.CheckNeedUpdateBundle(bundleList, remoteResourceDetailedData);
-            if (updateAssetList.Count <= 0)
-            {
-                return;
-            }
-            updateAssetList.Start();
-            await taskCompletionSource.Task;
-            if (bundleList == null)
-            {
-                bundleList = remoteResourceDetailedData;
-            }
-            else
-            {
-                needUpdateList.ForEach(x =>
-                {
-                    bundleList.Remove(x.name);
-                    bundleList.Add(x);
-                });
-            }
-            stream = DataStream.Generate();
-            stream.Write(UTF8Encoding.UTF8.GetBytes(bundleList.ToString()));
-            await WriteFileAsync("BundleList.ini", stream);
+            UpdateAssetList updateAssetList = UpdateAssetList.Generate(url, this, progres);
+            bundleList = await updateAssetList.CheckNeedUpdateBundle();
+            return updateAssetList.isHaveFailur;
         }
 
         /// <summary>
@@ -127,6 +94,38 @@ namespace GameFramework.Resource
             await handle.LoadBundleAsync(this, bundleData.name);
             bundleHandlers.Add(handle);
             return await handle.LoadHandleAsync(name);
+        }
+
+        /// <summary>
+        /// 读取文件数据
+        /// </summary>
+        /// <param name="fileName">文件名</param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public T ReadFileSync<T>(string fileName)
+        {
+            DataStream stream = ReadFileSync(fileName);
+            if (stream == null || stream.position <= 0)
+            {
+                return default;
+            }
+            return CatJson.JsonParser.ParseJson<T>(stream.ToString());
+        }
+
+        /// <summary>
+        /// 读取文件数据
+        /// </summary>
+        /// <param name="fileName">文件名</param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public async Task<T> ReadFileAsync<T>(string fileName)
+        {
+            DataStream stream = await ReadFileAsync(fileName);
+            if (stream == null || stream.position <= 0)
+            {
+                return default;
+            }
+            return CatJson.JsonParser.ParseJson<T>(stream.ToString());
         }
 
         /// <summary>
@@ -280,5 +279,7 @@ namespace GameFramework.Resource
                 fileStream.Write(stream.bytes, 0, stream.position);
             }
         }
+
+
     }
 }

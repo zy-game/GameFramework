@@ -432,6 +432,10 @@ namespace GameFramework.Network
             }
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
             {
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    throw GameFrameworkException.Generate(response.StatusCode);
+                }
                 using (Stream resposeStream = response.GetResponseStream())
                 {
                     using (StreamReader reader = new StreamReader(resposeStream))
@@ -480,6 +484,10 @@ namespace GameFramework.Network
             }
             using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
             {
+                if (response.StatusCode != HttpStatusCode.OK)
+                {
+                    throw GameFrameworkException.Generate(response.StatusCode);
+                }
                 using (Stream resposeStream = response.GetResponseStream())
                 {
                     using (StreamReader reader = new StreamReader(resposeStream))

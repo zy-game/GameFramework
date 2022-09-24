@@ -1,9 +1,11 @@
+using System.IO;
 using System;
 
 namespace GameFramework.Network
 {
     internal sealed class DefaultDownloadHandler : IDownloadHandle
     {
+        public string name { get; private set; }
         /// <summary>
         /// 下载结束位置
         /// </summary>
@@ -38,6 +40,7 @@ namespace GameFramework.Network
         /// 下载数据
         /// </summary>
         public DataStream stream { get; private set; }
+
 
 
         private bool isCancel;
@@ -197,6 +200,7 @@ namespace GameFramework.Network
             defaultDownloadHandler.isDone = false;
             defaultDownloadHandler.isCancel = false;
             defaultDownloadHandler.progresCallback = progres;
+            defaultDownloadHandler.name = Path.GetFileName(url);
             defaultDownloadHandler.completedCallback = completed;
             return defaultDownloadHandler;
         }
