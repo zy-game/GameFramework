@@ -10,15 +10,14 @@ namespace GameFramework
     /// <summary>
     /// 游戏运行时
     /// </summary>
-    public sealed class Runtime : IRefrence
+    public sealed class Runtime
     {
         private static List<IGameModule> modules = new List<IGameModule>();
 
         public const string HOTFIX_FILE_LIST_NAME = "hotfixFileList.ini";
         public const string BASIC_FILE_LIST_NAME = "basicFileList.ini";
 
-        [RuntimeInitializeOnLoadMethod]
-        private static void Initialize()
+        public static void Initialize()
         {
             LoadGameModule<Events.EventManager>();
             LoadGameModule<Resource.ResourceManager>();
@@ -28,17 +27,13 @@ namespace GameFramework
             LoadGameModule<Network.NetworkManager>();
         }
 
-        public void Release()
-        {
-
-        }
-
         /// <summary>
         /// 关闭运行时
         /// </summary>
         public static void Shutdown()
         {
             modules.ForEach(Loader.Release);
+            modules.Clear();
         }
 
         /// <summary>
