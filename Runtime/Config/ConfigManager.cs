@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace GameFramework.Config
 {
     /// <summary>
-    /// ÅäÖÃ±í¹ÜÀíÆ÷
+    /// é…ç½®è¡¨ç®¡ç†å™¨
     /// </summary>
     public sealed class ConfigManager : IConfigManager
     {
@@ -16,7 +16,7 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// ÇåÀíËùÓĞÅäÖÃ±í
+        /// æ¸…ç†æ‰€æœ‰é…ç½®
         /// </summary>
         public void Clear()
         {
@@ -27,10 +27,10 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// »ñÈ¡Ö¸¶¨µÄÅäÖÃ±í
+        /// è·å–é…ç½®è¡¨
         /// </summary>
-        /// <param name="name">ÅäÖÃ±íÃû³Æ</param>
-        /// <typeparam name="T">ÅäÖÃ±í</typeparam>
+        /// <param name="name">é…ç½®è¡¨å</param>
+        /// <typeparam name="T">é…ç½®è¡¨ç±»å‹</typeparam>
         /// <returns></returns>
         public IConfigDatable<T> GetConfigTable<T>(string name) where T : IConfig
         {
@@ -42,17 +42,17 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// ²éÑ¯ÊÇ·ñÒÑ¾­¼ÓÔØÖ¸¶¨µÄÅäÖÃ±í
+        /// æ˜¯å¦åŠ è½½é…ç½®è¡¨
         /// </summary>
-        /// <param name="name"></param>
+        /// <param name="name">é…ç½®è¡¨å</param>
         /// <returns></returns>
         public bool HasLoadConfig(string name) => configs.ContainsKey(name);
 
         /// <summary>
-        /// ¼ÓÔØÖ¸¶¨µÄÅäÖÃ±í
+        /// åŠ è½½é…ç½®è¡¨
         /// </summary>
-        /// <param name="name"></param>
-        /// <typeparam name="T"></typeparam>
+        /// <param name="name">é…ç½®è¡¨å</param>
+        /// <typeparam name="T">é…ç½®è¡¨ç±»å‹</typeparam>
         /// <returns></returns>
         public IConfigDatable<T> LoadConfig<T>(string name) where T : IConfig
         {
@@ -62,7 +62,7 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// »ØÊÕÅäÖÃ±í
+        /// å›æ”¶
         /// </summary>
         public void Release()
         {
@@ -70,7 +70,7 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// Ğ¶ÔØÖ¸¶¨µÄÅäÖÃ±í
+        /// å¸è½½é…ç½®è¡¨
         /// </summary>
         /// <param name="name"></param>
         public void UnloadConfig(string name)
@@ -83,7 +83,7 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// ÂÖÑ¯
+        /// è½®è¯¢
         /// </summary>
         public void Update()
         {

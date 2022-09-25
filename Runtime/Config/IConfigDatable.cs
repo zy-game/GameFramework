@@ -1,100 +1,101 @@
 namespace GameFramework.Config
 {
     /// <summary>
-    /// ÅäÖÃ±í¶ÔÏó
+    /// é…ç½®è¡¨
     /// </summary>
-    /// <typeparam name="T">ÅäÖÃ±íÀàÐÍ</typeparam>
+    /// <typeparam name="T">é…ç½®é¡¹ç±»åž‹</typeparam>
     public interface IConfigDatable<T> : IRefrence where T : IConfig
     {
         /// <summary>
-        /// ÅäÖÃ±íÃû³Æ
+        /// é…ç½®è¡¨å
         /// </summary>
         /// <value></value>
         string name { get; }
         
         /// <summary>
-        /// µ±Ç°ÅäÏî±íÊýÄ¿
+        /// é…ç½®é¡¹æ•°é‡
         /// </summary>
         /// <value></value>
         int Count { get; }
 
         /// <summary>
-        /// ¼ÓÔØÅäÖÃ±í
+        /// åŠ è½½é…ç½®è¡¨
         /// </summary>
-        /// <param name="configName">ÅäÖÃ±íÃû³Æ</param>
+        /// <param name="configName">é…ç½®è¡¨å</param>
         /// <returns></returns>
         void Load(string configName);
 
         /// <summary>
-        /// ±£´æÅäÖÃ±í
+        /// ä¿å­˜é…ç½®è¡¨
         /// </summary>
         void Save();
 
         /// <summary>
-        /// »ñÈ¡Ö¸¶¨µÄÅäÖÃÏî
+        /// èŽ·å–é…ç½®é¡¹
         /// </summary>
-        /// <param name="id">ÅäÖÃÏîID</param>
-        /// <returns>ÅäÖÃÏî</returns>
+        /// <param name="id">é…ç½®é¡¹ID</param>
+        /// <returns>é…ç½®é¡¹</returns>
         T GetConfig(int id);
 
         /// <summary>
-        /// »ñÈ¡Ö¸¶¨µÄÅäÖÃÏî
+        /// èŽ·å–é…ç½®é¡¹
         /// </summary>
-        /// <param name="name">ÅäÖÃÏîÃû³Æ</param>
-        /// <returns>ÅäÖÃÏî</returns>
+        /// <param name="name">é…ç½®é¡¹åç§°</param>
+        /// <returns>ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½</returns>
         T GetConfig(string name);
 
         /// <summary>
-        /// ³¢ÊÔ»ñÈ¡Ò»¸öÅäÖÃÏî
+        /// èŽ·å–é…ç½®é¡¹
         /// </summary>
-        /// <param name="id">ÅäÖÃÏîID</param>
-        /// <param name="config">ÅäÖÃÏî</param>
-        /// <returns>ÊÇ·ñ´æÔÚÅäÖÃÏî</returns>
+        /// <param name="id">é…ç½®é¡¹ID</param>
+        /// <param name="config">é…ç½®é¡¹</param>
+        /// <returns>æ˜¯å¦å­˜åœ¨é…ç½®é¡¹</returns>
         bool TryGetConfig(int id, out T config);
 
         /// <summary>
-        /// ³¢ÊÔ»ñÈ¡Ò»¸öÅäÖÃÏî
+        /// èŽ·å–é…ç½®é¡¹
         /// </summary>
-        /// <param name="name">ÅäÖÃÏîÃû³Æ</param>
-        /// <param name="config">ÅäÖÃ¶ÔÏó</param>
-        /// <returns>ÊÇ·ñ´æÔÚÅäÖÃÏî</returns>
+        /// <param name="name">é…ç½®é¡¹åç§°</param>
+        /// <param name="config">é…ç½®é¡¹</param>
+        /// <returns>æ˜¯å¦å­˜åœ¨é…ç½®é¡¹</returns>
         bool TryGetConfig(string name, out T config);
 
         /// <summary>
-        /// ²éÑ¯ÊÇ·ñ´æÔÚÖ¸¶¨µÄÅäÖÃID
+        /// æ˜¯å¦å­˜åœ¨é…ç½®é¡¹
         /// </summary>
-        /// <param name="id">ÅäÖÃID</param>
-        /// <returns>ÊÇ·ñ´æÔÚÖ¸¶¨µÄÅäÖÃID</returns>
+        /// <param name="id">é…ç½®é¡¹ID</param>
+        /// <returns>æ˜¯å¦å­˜åœ¨é…ç½®é¡¹</returns>
         bool HasConfig(int id);
 
         /// <summary>
-        /// ²éÑ¯ÊÇ·ñ´æÔÚÖ¸¶¨µÄÅäÖÃÃû³Æ
+        /// æ˜¯å¦å­˜åœ¨é…ç½®é¡¹
         /// </summary>
-        /// <param name="name">ÅäÖÃÃû³Æ</param>
-        /// <returns>ÊÇ·ñ´æÔÚÖ¸¶¨µÄÅäÖÃÃû³Æ</returns>
+        /// <param name="name">é…ç½®é¡¹åç§°</param>
+        /// <returns>æ˜¯å¦å­˜åœ¨é…ç½®é¡¹</returns>
         bool HasConfig(string name);
+
         /// <summary>
-        /// Ìí¼ÓÒ»¸öÅäÖÃÏî
+        /// æ·»åŠ é…ç½®é¡¹
         /// </summary>
-        /// <param name="config">ÅäÖÃÏî</param>
+        /// <param name="config">é…ç½®é¡¹</param>
         void Add(T config);
 
         /// <summary>
-        /// ÒÆ³ýÒ»¸öÅäÖÃÏî
+        /// ç§»é™¤é…ç½®é¡¹
         /// </summary>
-        /// <param name="id">ÅäÖÃÏîID</param>
+        /// <param name="id">é…ç½®é¡¹ID</param>
         void Remove(int id);
 
         /// <summary>
-        /// ÒÆ³ýÒ»¸öÅäÖÃÏî
+        /// ç§»é™¤é…ç½®é¡¹
         /// </summary>
-        /// <param name="name">ÅäÖÃÏîÃû³Æ</param>
+        /// <param name="name">é…ç½®é¡¹åç§°</param>
         void Remove(string name);
 
         /// <summary>
-        /// ÒÆ³ýÒ»¸öÅäÖÃÏî
+        /// ç§»é™¤é…ç½®é¡¹
         /// </summary>
-        /// <param name="config">ÅäÖÃÏî</param>
+        /// <param name="config">é…ç½®é¡¹</param>
         void Remove(T config);
     }
 }

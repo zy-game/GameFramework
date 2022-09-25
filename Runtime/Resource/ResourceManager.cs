@@ -1,13 +1,29 @@
-﻿using System.Net.Mime;
+﻿using System.Threading;
+using System.Net.Mime;
 using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace GameFramework.Resource
 {
+    /// <summary>
+    /// 资源管理器运行模式
+    /// </summary>
+    public enum ResouceModle
+    {
+        /// <summary>
+        /// 本地模式-
+        /// </summary>
+        Local,
+        /// <summary>
+        /// 热更新模式
+        /// </summary>
+        Hotfix,
+    }
     /// <summary>
     /// 资源管理器
     /// </summary>
@@ -28,6 +44,8 @@ namespace GameFramework.Resource
         /// </summary>
         private List<BundleHandle> bundleHandlers;
 
+        private ResouceModle resouceModle;
+
         /// <summary>
         /// 资源管理器构造函数
         /// </summary>
@@ -38,6 +56,15 @@ namespace GameFramework.Resource
         }
 
         /// <summary>
+        /// 设置资源模式
+        /// </summary>
+        /// <param name="modle">资源模式</param>
+        public void SetResourceModle(ResouceModle modle)
+        {
+            resouceModle = modle;
+        }
+
+        /// <summary>
         /// 下载需要更新的资源文件
         /// </summary>
         /// <param name="resourceUpdateDataed">更新列表</param>
@@ -45,9 +72,25 @@ namespace GameFramework.Resource
         /// <param name="completed">更新完成回调</param>
         public async Task<bool> DownloadResourceUpdate(string url, GameFrameworkAction<float> progres)
         {
-            UpdateAssetList updateAssetList = UpdateAssetList.Generate(url, this, progres);
-            bundleList = await updateAssetList.CheckNeedUpdateBundle();
-            return updateAssetList.isHaveFailur;
+            //todo 将streamingAsset的资源拷贝到沙盒中
+            BundleList streamingBundleList = await ReadFileAsync<BundleList>(Runtime.BASIC_FILE_LIST_NAME);
+            BundleList sanboxBundleList = await ReadFileAsync<BundleList>(Runtime.BASIC_FILE_LIST_NAME);
+            List<BundleData> needCopyBundleList = UpdateAssetList.CheckUpdateList(streamingBundleList, sanboxBundleList);
+            if (needCopyBundleList.Count > 0)
+            {
+                foreach (BundleData bundleData in needCopyBundleList)
+                {
+                    DataStream stream = await ReadFileAsync(bundleData.name, true);
+                    await WriteFileAsync(bundleData.name, stream);
+                }
+            }
+            if (resouceModle != ResouceModle.Local)
+            {
+                UpdateAssetList updateAssetList = UpdateAssetList.Generate(url, this, progres);
+                bundleList = await updateAssetList.CheckNeedUpdateBundle();
+                return updateAssetList.isHaveFailur;
+            }
+            return false;
         }
 
         /// <summary>
@@ -102,7 +145,7 @@ namespace GameFramework.Resource
         /// <param name="fileName">文件名</param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T ReadFileSync<T>(string fileName)
+        public T ReadFileSync<T>(string fileName, bool isStreamingAssets = false)
         {
             DataStream stream = ReadFileSync(fileName);
             if (stream == null || stream.position <= 0)
@@ -118,7 +161,7 @@ namespace GameFramework.Resource
         /// <param name="fileName">文件名</param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public async Task<T> ReadFileAsync<T>(string fileName)
+        public async Task<T> ReadFileAsync<T>(string fileName, bool isStreamingAssets = false)
         {
             DataStream stream = await ReadFileAsync(fileName);
             if (stream == null || stream.position <= 0)
@@ -133,11 +176,26 @@ namespace GameFramework.Resource
         /// </summary>
         /// <param name="fileName">文件名</param>
         /// <returns>文件数据流</returns>
-        public async Task<DataStream> ReadFileAsync(string fileName)
+        public async Task<DataStream> ReadFileAsync(string fileName, bool isStreamingAssets = false)
         {
             if (File.Exists(GetFilePath(fileName)))
             {
                 throw GameFrameworkException.Generate<FileNotFoundException>();
+            }
+            if (isStreamingAssets)
+            {
+                UnityWebRequest request = new UnityWebRequest(Path.Combine(Application.streamingAssetsPath));
+                request.SendWebRequest();
+                while (!request.isDone)
+                {
+                    await Task.Delay(10);
+                }
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    return default;
+                }
+                DataStream stream = DataStream.Generate(request.downloadHandler.data);
+                return stream;
             }
             using (FileStream fileStream = new FileStream(GetFilePath(fileName), FileMode.Open, FileAccess.Read))
             {
@@ -157,12 +215,28 @@ namespace GameFramework.Resource
         /// </summary>
         /// <param name="fileName">文件名</param>
         /// <returns>文件数据流</returns>
-        public DataStream ReadFileSync(string fileName)
+        public DataStream ReadFileSync(string fileName, bool isStreamingAssets = false)
         {
             if (File.Exists(GetFilePath(fileName)))
             {
                 throw GameFrameworkException.Generate<FileNotFoundException>();
             }
+            if (isStreamingAssets)
+            {
+                UnityWebRequest request = new UnityWebRequest(Path.Combine(Application.streamingAssetsPath));
+                request.SendWebRequest();
+                while (!request.isDone)
+                {
+                    Thread.Sleep(10);
+                }
+                if (request.result != UnityWebRequest.Result.Success)
+                {
+                    return default;
+                }
+                DataStream stream = DataStream.Generate(request.downloadHandler.data);
+                return stream;
+            }
+
             using (FileStream fileStream = new FileStream(GetFilePath(fileName), FileMode.Open, FileAccess.Read))
             {
                 int length = 0;
@@ -183,11 +257,7 @@ namespace GameFramework.Resource
         /// <returns>文件实际路径</returns>
         public string GetFilePath(string fileName)
         {
-            if (Application.isEditor)
-            {
-                return Application.dataPath + "/../Hotfix/" + MD5Core.GetHashString(fileName);
-            }
-            return Application.persistentDataPath + "/" + MD5Core.GetHashString(fileName);
+            return Path.Combine(Application.persistentDataPath, MD5Core.GetHashString(fileName));
         }
 
         /// <summary>

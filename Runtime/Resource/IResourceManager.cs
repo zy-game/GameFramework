@@ -12,6 +12,12 @@ namespace GameFramework.Resource
     public interface IResourceManager : IGameModule
     {
         /// <summary>
+        /// 设置资源模式
+        /// </summary>
+        /// <param name="modle">资源模式</param>
+        void SetResourceModle(ResouceModle modle);
+
+        /// <summary>
         /// 加载资源
         /// </summary>
         /// <param name="name">资源名</param>
@@ -33,7 +39,7 @@ namespace GameFramework.Resource
         /// <param name="fileName">文件名</param>
         /// <returns>数据流</returns>
         /// <exception cref="System.IO.FileNotFoundException">文件不存在</exception>
-        DataStream ReadFileSync(string fileName);
+        DataStream ReadFileSync(string fileName, bool isStreamingAssets = false);
 
         /// <summary>
         /// 读取文件数据
@@ -41,7 +47,7 @@ namespace GameFramework.Resource
         /// <param name="fileName">文件名</param>
         /// <returns>数据流</returns>
         /// <exception cref="System.IO.FileNotFoundException">文件不存在</exception>
-        Task<DataStream> ReadFileAsync(string fileName);
+        Task<DataStream> ReadFileAsync(string fileName, bool isStreamingAssets = false);
 
         /// <summary>
         /// 读取文件数据
@@ -49,7 +55,7 @@ namespace GameFramework.Resource
         /// <param name="fileName">文件名</param>
         /// <returns>数据流</returns>
         /// <exception cref="System.IO.FileNotFoundException">文件不存在</exception>
-        T ReadFileSync<T>(string fileName);
+        T ReadFileSync<T>(string fileName, bool isStreamingAssets = false);
 
         /// <summary>
         /// 读取文件数据
@@ -57,7 +63,7 @@ namespace GameFramework.Resource
         /// <param name="fileName">文件名</param>
         /// <returns>数据流</returns>
         /// <exception cref="System.IO.FileNotFoundException">文件不存在</exception>
-        Task<T> ReadFileAsync<T>(string fileName);
+        Task<T> ReadFileAsync<T>(string fileName, bool isStreamingAssets = false);
 
         /// <summary>
         /// 写入文件数据

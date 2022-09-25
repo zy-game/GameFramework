@@ -74,7 +74,7 @@ namespace GameFramework.Resource
             {
                 throw GameFrameworkException.Generate("not find hotfix file,please check file is exsit form:" + resourceDownloadUrl);
             }
-            CheckUpdateList(remoteBundleList, localBundleList);
+            needUpdateList = CheckUpdateList(remoteBundleList, localBundleList);
             if (needUpdateList.Count <= 0)
             {
                 return remoteBundleList;
@@ -102,9 +102,9 @@ namespace GameFramework.Resource
             return remoteBundleList;
         }
 
-        private void CheckUpdateList(BundleList remoteBundleList, BundleList localBundleList)
+        public static List<BundleData> CheckUpdateList(BundleList remoteBundleList, BundleList localBundleList)
         {
-            needUpdateList = new List<BundleData>();
+            List<BundleData> needUpdateList = new List<BundleData>();
             if (localBundleList == null)
             {
                 needUpdateList.AddRange(remoteBundleList.bundles);
@@ -120,6 +120,7 @@ namespace GameFramework.Resource
                     }
                 }
             }
+            return needUpdateList;
         }
 
         /// <summary>

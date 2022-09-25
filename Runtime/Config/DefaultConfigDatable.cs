@@ -5,7 +5,7 @@ using System.Text;
 namespace GameFramework.Config
 {
     /// <summary>
-    /// Ä¬ÈÏÅäÖÃ±í¶ÔÏó
+    /// é…ç½®è¡¨
     /// </summary>
     /// <typeparam name="T"></typeparam>
     sealed class DefaultConfigDatable<T> : IConfigDatable<T> where T : IConfig
@@ -14,7 +14,7 @@ namespace GameFramework.Config
         private List<T> configs = new List<T>();
 
         /// <summary>
-        /// ÅäÖÃ±íÃû³Æ
+        /// é…ç½®è¡¨å
         /// </summary>
         /// <value></value>
         public string name
@@ -24,7 +24,7 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// µ±Ç°ÅäÏî±íÊıÄ¿
+        /// é…ç½®é¡¹æ•°é‡
         /// </summary>
         /// <value></value>
         public int Count
@@ -36,9 +36,9 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// Ìí¼ÓÒ»¸öÅäÖÃÏî
+        /// æ·»åŠ é…ç½®é¡¹
         /// </summary>
-        /// <param name="config">ÅäÖÃÏî</param>
+        /// <param name="config">é…ç½®é¡¹</param>
         public void Add(T config)
         {
             if (HasConfig(config.id) || HasConfig(config.name))
@@ -49,37 +49,37 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// »ñÈ¡Ö¸¶¨µÄÅäÖÃÏî
+        /// è·å–é…ç½®é¡¹
         /// </summary>
-        /// <param name="id">ÅäÖÃÏîID</param>
-        /// <returns>ÅäÖÃÏî</returns>
+        /// <param name="id">é…ç½®é¡¹ID</param>
+        /// <returns>é…ç½®é¡¹</returns>
         public T GetConfig(int id) => configs.Find(x => x.id == id);
 
         /// <summary>
-        /// »ñÈ¡Ö¸¶¨µÄÅäÖÃÏî
+        /// è·å–é…ç½®é¡¹
         /// </summary>
-        /// <param name="name">ÅäÖÃÏîÃû³Æ</param>
-        /// <returns>ÅäÖÃÏî</returns>
+        /// <param name="name">é…ç½®é¡¹å</param>
+        /// <returns>é…ç½®é¡¹</returns>
         public T GetConfig(string name) => configs.Find(x => x.name == name);
 
         /// <summary>
-        /// ²éÑ¯ÊÇ·ñ´æÔÚÖ¸¶¨µÄÅäÖÃID
+        /// æ˜¯å¦å­˜åœ¨é…ç½®é¡¹
         /// </summary>
-        /// <param name="id">ÅäÖÃID</param>
-        /// <returns>ÊÇ·ñ´æÔÚÖ¸¶¨µÄÅäÖÃID</returns>
+        /// <param name="id">é…ç½®é¡¹ID</param>
+        /// <returns>æ˜¯å¦å­˜åœ¨æŒ‡å®šçš„é…ç½®é¡¹ID</returns>
         public bool HasConfig(int id) => GetConfig(id) != null;
 
         /// <summary>
-        /// ²éÑ¯ÊÇ·ñ´æÔÚÖ¸¶¨µÄÅäÖÃÃû³Æ
+        /// æ˜¯å¦å­˜åœ¨é…ç½®é¡¹
         /// </summary>
-        /// <param name="name">ÅäÖÃÃû³Æ</param>
-        /// <returns>ÊÇ·ñ´æÔÚÖ¸¶¨µÄÅäÖÃÃû³Æ</returns>
+        /// <param name="name">é…ç½®é¡¹å</param>
+        /// <returns>æ˜¯å¦å­˜åœ¨æŒ‡å®šçš„é…ç½®é¡¹åç§°</returns>
         public bool HasConfig(string name) => GetConfig(name) != null;
 
         /// <summary>
-        /// ¼ÓÔØÅäÖÃ±í
+        /// åŠ è½½é…ç½®
         /// </summary>
-        /// <param name="configName">ÅäÖÃ±íÃû³Æ</param>
+        /// <param name="configName">é…ç½®è¡¨å</param>
         /// <returns></returns>
         public async void Load(string configName)
         {
@@ -93,7 +93,7 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// ±£´æÅäÖÃ±í
+        /// ä¿å­˜é…ç½®è¡¨
         /// </summary>
         /// <returns></returns>
         public async void Save()
@@ -105,7 +105,7 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// »ØÊÕÅäÖÃ±í
+        /// å›æ”¶é…ç½®è¡¨
         /// </summary>
         public void Release()
         {
@@ -117,21 +117,21 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// ÒÆ³ıÒ»¸öÅäÖÃÏî
+        /// ç§»é™¤é…ç½®
         /// </summary>
-        /// <param name="id">ÅäÖÃÏîID</param>
+        /// <param name="id">é…ç½®é¡¹ID</param>
         public void Remove(int id) => Remove(GetConfig(id));
 
         /// <summary>
-        /// ÒÆ³ıÒ»¸öÅäÖÃÏî
+        /// ç§»é™¤é…ç½®
         /// </summary>
-        /// <param name="name">ÅäÖÃÏîÃû³Æ</param>
+        /// <param name="name">é…ç½®é¡¹å</param>
         public void Remove(string name) => Remove(GetConfig(name));
 
         /// <summary>
-        /// ÒÆ³ıÒ»¸öÅäÖÃÏî
+        /// ç§»é™¤é…ç½®
         /// </summary>
-        /// <param name="config">ÅäÖÃÏî</param>
+        /// <param name="config">é…ç½®é¡¹</param>
         public void Remove(T config)
         {
             if (config == null)
@@ -142,11 +142,11 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// ³¢ÊÔ»ñÈ¡Ò»¸öÅäÖÃÏî
+        /// è·å–æŒ‡å®šçš„é…ç½®é¡¹
         /// </summary>
-        /// <param name="id">ÅäÖÃÏîID</param>
-        /// <param name="config">ÅäÖÃÏî</param>
-        /// <returns>ÊÇ·ñ´æÔÚÅäÖÃÏî</returns>
+        /// <param name="id">é…ç½®é¡¹ID</param>
+        /// <param name="config">é…ç½®é¡¹</param>
+        /// <returns>æ˜¯å¦å­˜åœ¨é…ç½®é¡¹ID</returns>
         public bool TryGetConfig(int id, out T config)
         {
             config = GetConfig(id);
@@ -154,11 +154,11 @@ namespace GameFramework.Config
         }
 
         /// <summary>
-        /// ³¢ÊÔ»ñÈ¡Ò»¸öÅäÖÃÏî
+        /// è·å–æŒ‡å®šçš„é…ç½®é¡¹
         /// </summary>
-        /// <param name="name">ÅäÖÃÏîÃû³Æ</param>
-        /// <param name="config">ÅäÖÃ¶ÔÏó</param>
-        /// <returns>ÊÇ·ñ´æÔÚÅäÖÃÏî</returns>
+        /// <param name="name">é…ç½®é¡¹å</param>
+        /// <param name="config">é…ç½®é¡¹</param>
+        /// <returns>æ˜¯å¦å­˜åœ¨é…ç½®é¡¹å</returns>
         public bool TryGetConfig(string name, out T config)
         {
             config = GetConfig(name);
