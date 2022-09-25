@@ -17,16 +17,6 @@ namespace GameFramework
         public const string HOTFIX_FILE_LIST_NAME = "hotfixFileList.ini";
         public const string BASIC_FILE_LIST_NAME = "basicFileList.ini";
 
-        public static void Initialize()
-        {
-            LoadGameModule<Events.EventManager>();
-            LoadGameModule<Resource.ResourceManager>();
-            LoadGameModule<Config.ConfigManager>();
-            LoadGameModule<Datable.DatableManager>();
-            LoadGameModule<Game.GameManager>();
-            LoadGameModule<Network.NetworkManager>();
-        }
-
         /// <summary>
         /// 关闭运行时
         /// </summary>
