@@ -184,7 +184,7 @@ namespace GameFramework.Resource
             }
             if (isStreamingAssets)
             {
-                UnityWebRequest request = new UnityWebRequest(Path.Combine(Application.streamingAssetsPath));
+                UnityWebRequest request = new UnityWebRequest(Path.Combine(Application.streamingAssetsPath, fileName));
                 request.SendWebRequest();
                 while (!request.isDone)
                 {
@@ -223,7 +223,7 @@ namespace GameFramework.Resource
             }
             if (isStreamingAssets)
             {
-                UnityWebRequest request = new UnityWebRequest(Path.Combine(Application.streamingAssetsPath));
+                UnityWebRequest request = new UnityWebRequest(Path.Combine(Application.streamingAssetsPath, fileName));
                 request.SendWebRequest();
                 while (!request.isDone)
                 {
