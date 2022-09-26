@@ -26,32 +26,32 @@ namespace GameFramework
             modules.Clear();
         }
 
-        /// <summary>
-        /// 加载游戏模块
-        /// </summary>
-        /// <typeparam name="T">模块类型</typeparam>
-        /// <returns>游戏模块</returns>
-        public static T LoadGameModule<T>() where T : IGameModule
-        {
-            return (T)LoadGameModule(typeof(T));
-        }
+        // /// <summary>
+        // /// 加载游戏模块
+        // /// </summary>
+        // /// <typeparam name="T">模块类型</typeparam>
+        // /// <returns>游戏模块</returns>
+        // public static T LoadGameModule<T>() where T : IGameModule
+        // {
+        //     return (T)LoadGameModule(typeof(T));
+        // }
 
-        /// <summary>
-        /// 加载游戏模块
-        /// </summary>
-        /// <param name="gameModuleType">模块类型</param>
-        /// <returns>游戏模块</returns>
-        public static IGameModule LoadGameModule(Type gameModuleType)
-        {
-            IGameModule gameModule = GetGameModule(gameModuleType);
-            if (gameModule != null)
-            {
-                return gameModule;
-            }
-            gameModule = (IGameModule)Loader.Generate(gameModuleType);
-            modules.Add(gameModule);
-            return gameModule;
-        }
+        // /// <summary>
+        // /// 加载游戏模块
+        // /// </summary>
+        // /// <param name="gameModuleType">模块类型</param>
+        // /// <returns>游戏模块</returns>
+        // public static IGameModule LoadGameModule(Type gameModuleType)
+        // {
+        //     IGameModule gameModule = GetGameModule(gameModuleType);
+        //     if (gameModule != null)
+        //     {
+        //         return gameModule;
+        //     }
+        //     gameModule = (IGameModule)Loader.Generate(gameModuleType);
+        //     modules.Add(gameModule);
+        //     return gameModule;
+        // }
 
         /// <summary>
         /// 获取游戏模块
@@ -71,14 +71,11 @@ namespace GameFramework
         public static IGameModule GetGameModule(Type type)
         {
             type.EnsureObjectRefrenceType<IGameModule>();
-            IGameModule module = default;
-            for (int i = 0; i < modules.Count; i++)
+            IGameModule module = modules.AsParallel().Where(x => x.GetType() == type).FirstOrDefault();
+            if (module == null)
             {
-                if (modules[i].GetType() == type)
-                {
-                    module = modules[i];
-                    break;
-                }
+                module = (IGameModule)Loader.Generate(type);
+                modules.Add(module);
             }
             return module;
         }
