@@ -109,7 +109,7 @@ namespace GameFramework.Game
         /// <summary>
         /// 回收游戏
         /// </summary>
-        public void Release()
+        public virtual void Release()
         {
             foreach (var item in entitys.Values)
             {
@@ -157,7 +157,7 @@ namespace GameFramework.Game
         /// <summary>
         /// 轮询
         /// </summary>
-        public void Update()
+        public virtual void Update()
         {
             for (int i = scripts.Count - 1; i >= 0; i--)
             {

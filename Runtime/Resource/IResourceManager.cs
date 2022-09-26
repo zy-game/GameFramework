@@ -23,7 +23,7 @@ namespace GameFramework.Resource
         /// <param name="name">资源名</param>
         /// <returns>资源句柄</returns>
         /// <exception cref="NullReferenceException">不存在资源对象</exception>
-        ResHandle LoadObject(string name);
+        ResHandle LoadAssetSync(string name);
 
         /// <summary>
         /// 加载资源
@@ -31,7 +31,7 @@ namespace GameFramework.Resource
         /// <param name="name">资源名</param>
         /// <returns>资源句柄</returns>
         /// <exception cref="NullReferenceException">不存在资源对象</exception>
-        Task<ResHandle> LoadObjectAsync(string name);
+        Task<ResHandle> LoadAssetAsync(string name);
 
         /// <summary>
         /// 读取文件数据
@@ -39,7 +39,7 @@ namespace GameFramework.Resource
         /// <param name="fileName">文件名</param>
         /// <returns>数据流</returns>
         /// <exception cref="System.IO.FileNotFoundException">文件不存在</exception>
-        DataStream ReadFileSync(string fileName, bool isStreamingAssets = false);
+        DataStream ReadFileSync(string fileName);
 
         /// <summary>
         /// 读取文件数据
@@ -47,23 +47,7 @@ namespace GameFramework.Resource
         /// <param name="fileName">文件名</param>
         /// <returns>数据流</returns>
         /// <exception cref="System.IO.FileNotFoundException">文件不存在</exception>
-        Task<DataStream> ReadFileAsync(string fileName, bool isStreamingAssets = false);
-
-        /// <summary>
-        /// 读取文件数据
-        /// </summary>
-        /// <param name="fileName">文件名</param>
-        /// <returns>数据流</returns>
-        /// <exception cref="System.IO.FileNotFoundException">文件不存在</exception>
-        T ReadFileSync<T>(string fileName, bool isStreamingAssets = false);
-
-        /// <summary>
-        /// 读取文件数据
-        /// </summary>
-        /// <param name="fileName">文件名</param>
-        /// <returns>数据流</returns>
-        /// <exception cref="System.IO.FileNotFoundException">文件不存在</exception>
-        Task<T> ReadFileAsync<T>(string fileName, bool isStreamingAssets = false);
+        Task<DataStream> ReadFileAsync(string fileName);
 
         /// <summary>
         /// 写入文件数据
@@ -88,11 +72,16 @@ namespace GameFramework.Resource
         void DeleteFile(string fileName);
 
         /// <summary>
-        /// 下载需要更新的资源
+        /// 检查资源更新
         /// </summary>
-        /// <param name="resourceUpdateDataed">资源更新数据</param>
-        /// <param name="progres">进度回调</param>
-        /// <param name="completed">完成回调</param>
-        Task<bool> DownloadResourceUpdate(string url, GameFrameworkAction<float> progres);
+        /// <param name="progresCallback"></param>
+        /// <param name="compoleted"></param>
+        void CheckoutResourceUpdate(string url, GameFrameworkAction<float> progresCallback, GameFrameworkAction<ResourceUpdateState> compoleted);
+
+        /// <summary>
+        /// 检查资源更新
+        /// </summary>
+        /// <typeparam name="IResourceUpdateListenerHandler"></typeparam>
+        void CheckoutResourceUpdate<TResourceUpdateListenerHandler>(string url) where TResourceUpdateListenerHandler : IResourceUpdateListenerHandler;
     }
 }

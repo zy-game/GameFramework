@@ -17,6 +17,8 @@ namespace GameFramework
         public const string HOTFIX_FILE_LIST_NAME = "hotfixFileList.ini";
         public const string BASIC_FILE_LIST_NAME = "basicFileList.ini";
 
+        public static int MaxDownloadCount = 5;
+
         /// <summary>
         /// 关闭运行时
         /// </summary>

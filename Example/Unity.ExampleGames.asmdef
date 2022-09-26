@@ -1,0 +1,16 @@
+{
+    "name": "Unity.ExampleGames",
+    "rootNamespace": "",
+    "references": [
+        "GUID:d7121da5fd89e55418453ca05fd19c71"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

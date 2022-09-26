@@ -11,20 +11,6 @@ using UnityEngine.Networking;
 namespace GameFramework.Resource
 {
     /// <summary>
-    /// 资源管理器运行模式
-    /// </summary>
-    public enum ResouceModle
-    {
-        /// <summary>
-        /// 本地模式-
-        /// </summary>
-        Local,
-        /// <summary>
-        /// 热更新模式
-        /// </summary>
-        Hotfix,
-    }
-    /// <summary>
     /// 资源管理器
     /// </summary>
     public sealed class ResourceManager : IResourceManager
@@ -44,7 +30,25 @@ namespace GameFramework.Resource
         /// </summary>
         private List<BundleHandle> bundleHandlers;
 
+        /// <summary>
+        /// 资源模式
+        /// </summary>
         private ResouceModle resouceModle;
+
+        /// <summary>
+        /// 资源读写管道
+        /// </summary>
+        private IResourceStreamingHandler resourceStreamingHandler;
+
+        /// <summary>
+        /// 资源加载管道
+        /// </summary>
+        private IResourceLoaderHandler resourceLoaderHandler;
+
+        /// <summary>
+        /// 资源更新管道
+        /// </summary>
+        private IResourceUpdateHandler resourceUpdateHandler;
 
         /// <summary>
         /// 资源管理器构造函数
@@ -62,35 +66,15 @@ namespace GameFramework.Resource
         public void SetResourceModle(ResouceModle modle)
         {
             resouceModle = modle;
-        }
+            resourceStreamingHandler = Loader.Generate<DefaultResourceStreamingHandler>();
+            resourceStreamingHandler.SetResourceModle(resouceModle);
+            resourceLoaderHandler = Loader.Generate<DefaultResourceLoaderHandler>();
+            resourceLoaderHandler.SetResourceModel(resouceModle);
+            resourceLoaderHandler.SetResourceStreamingHandler(resourceStreamingHandler);
 
-        /// <summary>
-        /// 下载需要更新的资源文件
-        /// </summary>
-        /// <param name="resourceUpdateDataed">更新列表</param>
-        /// <param name="progres">更新进度回调</param>
-        /// <param name="completed">更新完成回调</param>
-        public async Task<bool> DownloadResourceUpdate(string url, GameFrameworkAction<float> progres)
-        {
-            //todo 将streamingAsset的资源拷贝到沙盒中
-            BundleList streamingBundleList = await ReadFileAsync<BundleList>(Runtime.BASIC_FILE_LIST_NAME);
-            BundleList sanboxBundleList = await ReadFileAsync<BundleList>(Runtime.BASIC_FILE_LIST_NAME);
-            List<BundleData> needCopyBundleList = UpdateAssetList.CheckUpdateList(streamingBundleList, sanboxBundleList);
-            if (needCopyBundleList.Count > 0)
-            {
-                foreach (BundleData bundleData in needCopyBundleList)
-                {
-                    DataStream stream = await ReadFileAsync(bundleData.name, true);
-                    await WriteFileAsync(bundleData.name, stream);
-                }
-            }
-            if (resouceModle != ResouceModle.Local)
-            {
-                UpdateAssetList updateAssetList = UpdateAssetList.Generate(url, this, progres);
-                bundleList = await updateAssetList.CheckNeedUpdateBundle();
-                return updateAssetList.isHaveFailur;
-            }
-            return false;
+            resourceUpdateHandler = Loader.Generate<DefaultResourceUpdateHandler>();
+            resourceUpdateHandler.SetResourceModel(resouceModle);
+            resourceUpdateHandler.SetResourceStreamingHandler(resourceStreamingHandler);
         }
 
         /// <summary>
@@ -98,22 +82,9 @@ namespace GameFramework.Resource
         /// </summary>
         /// <param name="name">资源名</param>
         /// <returns>资源句柄</returns>
-        public ResHandle LoadObject(string name)
+        public ResHandle LoadAssetSync(string name)
         {
-            BundleData bundleData = bundleList.GetBundleDataWithAsset(name);
-            if (bundleData == null)
-            {
-                return null;
-            }
-            BundleHandle handle = bundleHandlers.Find(x => x.name == bundleData.name);
-            if (handle != null)
-            {
-                return handle.LoadHandleSync(name);
-            }
-            handle = Loader.Generate<BundleHandle>();
-            handle.LoadBundleSync(this, bundleData.name);
-            bundleHandlers.Add(handle);
-            return handle.LoadHandleSync(name);
+            return resourceLoaderHandler.LoadAsset(name);
         }
 
         /// <summary>
@@ -121,54 +92,9 @@ namespace GameFramework.Resource
         /// </summary>
         /// <param name="name">资源名</param>
         /// <returns>资源句柄</returns>
-        public async Task<ResHandle> LoadObjectAsync(string name)
+        public Task<ResHandle> LoadAssetAsync(string name)
         {
-            BundleData bundleData = bundleList.GetBundleDataWithAsset(name);
-            if (bundleData == null)
-            {
-                return null;
-            }
-            BundleHandle handle = bundleHandlers.Find(x => x.name == bundleData.name);
-            if (handle != null)
-            {
-                return await handle.LoadHandleAsync(name);
-            }
-            handle = Loader.Generate<BundleHandle>();
-            await handle.LoadBundleAsync(this, bundleData.name);
-            bundleHandlers.Add(handle);
-            return await handle.LoadHandleAsync(name);
-        }
-
-        /// <summary>
-        /// 读取文件数据
-        /// </summary>
-        /// <param name="fileName">文件名</param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public T ReadFileSync<T>(string fileName, bool isStreamingAssets = false)
-        {
-            DataStream stream = ReadFileSync(fileName);
-            if (stream == null || stream.position <= 0)
-            {
-                return default;
-            }
-            return CatJson.JsonParser.ParseJson<T>(stream.ToString());
-        }
-
-        /// <summary>
-        /// 读取文件数据
-        /// </summary>
-        /// <param name="fileName">文件名</param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        public async Task<T> ReadFileAsync<T>(string fileName, bool isStreamingAssets = false)
-        {
-            DataStream stream = await ReadFileAsync(fileName);
-            if (stream == null || stream.position <= 0)
-            {
-                return default;
-            }
-            return CatJson.JsonParser.ParseJson<T>(stream.ToString());
+            return resourceLoaderHandler.LoadAssetAsync(name);
         }
 
         /// <summary>
@@ -176,38 +102,9 @@ namespace GameFramework.Resource
         /// </summary>
         /// <param name="fileName">文件名</param>
         /// <returns>文件数据流</returns>
-        public async Task<DataStream> ReadFileAsync(string fileName, bool isStreamingAssets = false)
+        public Task<DataStream> ReadFileAsync(string fileName)
         {
-            if (File.Exists(GetFilePath(fileName)))
-            {
-                throw GameFrameworkException.Generate<FileNotFoundException>();
-            }
-            if (isStreamingAssets)
-            {
-                UnityWebRequest request = new UnityWebRequest(Path.Combine(Application.streamingAssetsPath, fileName));
-                request.SendWebRequest();
-                while (!request.isDone)
-                {
-                    await Task.Delay(10);
-                }
-                if (request.result != UnityWebRequest.Result.Success)
-                {
-                    return default;
-                }
-                DataStream stream = DataStream.Generate(request.downloadHandler.data);
-                return stream;
-            }
-            using (FileStream fileStream = new FileStream(GetFilePath(fileName), FileMode.Open, FileAccess.Read))
-            {
-                int length = 0;
-                DataStream stream = DataStream.Generate((int)fileStream.Length);
-                byte[] bytes = new byte[4096];
-                while ((length = await fileStream.ReadAsync(bytes)) > 0)
-                {
-                    stream.Write(bytes);
-                }
-                return stream;
-            }
+            return resourceStreamingHandler.ReadStreamingAssetDataAsync(fileName);
         }
 
         /// <summary>
@@ -215,39 +112,9 @@ namespace GameFramework.Resource
         /// </summary>
         /// <param name="fileName">文件名</param>
         /// <returns>文件数据流</returns>
-        public DataStream ReadFileSync(string fileName, bool isStreamingAssets = false)
+        public DataStream ReadFileSync(string fileName)
         {
-            if (File.Exists(GetFilePath(fileName)))
-            {
-                throw GameFrameworkException.Generate<FileNotFoundException>();
-            }
-            if (isStreamingAssets)
-            {
-                UnityWebRequest request = new UnityWebRequest(Path.Combine(Application.streamingAssetsPath, fileName));
-                request.SendWebRequest();
-                while (!request.isDone)
-                {
-                    Thread.Sleep(10);
-                }
-                if (request.result != UnityWebRequest.Result.Success)
-                {
-                    return default;
-                }
-                DataStream stream = DataStream.Generate(request.downloadHandler.data);
-                return stream;
-            }
-
-            using (FileStream fileStream = new FileStream(GetFilePath(fileName), FileMode.Open, FileAccess.Read))
-            {
-                int length = 0;
-                DataStream stream = DataStream.Generate((int)fileStream.Length);
-                byte[] bytes = new byte[4096];
-                while ((length = fileStream.Read(bytes)) > 0)
-                {
-                    stream.Write(bytes);
-                }
-                return stream;
-            }
+            return resourceStreamingHandler.ReadStreamingAssetDataSync(fileName);
         }
 
         /// <summary>
@@ -266,11 +133,7 @@ namespace GameFramework.Resource
         /// <param name="fileName">文件名</param>
         public void DeleteFile(string fileName)
         {
-            if (!File.Exists(GetFilePath(fileName)))
-            {
-                return;
-            }
-            File.Delete(GetFilePath(fileName));
+            resourceStreamingHandler.Delete(fileName);
         }
 
         /// <summary>
@@ -279,8 +142,15 @@ namespace GameFramework.Resource
         public void Release()
         {
             Loader.Release(bundleList);
+            Loader.Release(resourceLoaderHandler);
+            Loader.Release(resourceUpdateHandler);
+            Loader.Release(resourceStreamingHandler);
             bundleList = null;
             foreach (var item in bundleHandlers)
+            {
+                Loader.Release(item);
+            }
+            foreach (var item in bundleCacheList)
             {
                 Loader.Release(item);
             }
@@ -319,17 +189,9 @@ namespace GameFramework.Resource
         /// <param name="fileName">文件名</param>
         /// <param name="stream">文件数据</param>
         /// <returns>任务</returns>
-        public async Task WriteFileAsync(string fileName, DataStream stream)
+        public Task WriteFileAsync(string fileName, DataStream stream)
         {
-            string filePath = GetFilePath(fileName);
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
-            using (FileStream fileStream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write))
-            {
-                await fileStream.WriteAsync(stream.bytes, 0, stream.position);
-            }
+            return resourceStreamingHandler.WriteAsync(fileName, stream);
         }
 
         /// <summary>
@@ -339,17 +201,27 @@ namespace GameFramework.Resource
         /// <param name="stream">文件数据</param>
         public void WriteFileSync(string fileName, DataStream stream)
         {
-            string filePath = GetFilePath(fileName);
-            if (File.Exists(filePath))
-            {
-                File.Delete(filePath);
-            }
-            using (FileStream fileStream = new FileStream(filePath, FileMode.CreateNew, FileAccess.Write))
-            {
-                fileStream.Write(stream.bytes, 0, stream.position);
-            }
+            resourceStreamingHandler.WriteSync(fileName, stream);
+        }
+        /// <summary>
+        /// 检查资源更新
+        /// </summary>
+        /// <param name="progresCallback"></param>
+        /// <param name="compoleted"></param>
+        public void CheckoutResourceUpdate(string url, GameFrameworkAction<float> progresCallback, GameFrameworkAction<ResourceUpdateState> compoleted)
+        {
+            resourceUpdateHandler.SetResourceDownloadUrl(url);
+            resourceUpdateHandler.CheckoutResourceUpdate(progresCallback, compoleted);
         }
 
-
+        /// <summary>
+        /// 检查资源更新
+        /// </summary>
+        /// <typeparam name="IResourceUpdateListenerHandler"></typeparam>
+        public void CheckoutResourceUpdate<TResourceUpdateListenerHandler>(string url) where TResourceUpdateListenerHandler : IResourceUpdateListenerHandler
+        {
+            resourceUpdateHandler.SetResourceDownloadUrl(url);
+            resourceUpdateHandler.CheckoutResourceUpdate<IResourceUpdateListenerHandler>();
+        }
     }
 }

@@ -6,7 +6,7 @@ namespace GameFramework.Game
     /// <summary>
     /// 游戏管理器
     /// </summary>
-    public sealed class GameManager : IGameManager
+    public sealed class WorldManager : IGameManager
     {
         private Dictionary<Type, IGame> games = new Dictionary<Type, IGame>();
 

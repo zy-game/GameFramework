@@ -30,7 +30,10 @@ namespace GameFramework
 
         public static void Release(IRefrence refrence)
         {
-            GameFrameworkException.IsNull(refrence);
+            if (refrence == null)
+            {
+                return;
+            }
             Type type = refrence.GetType();
             if (!refrenceCollction.TryGetValue(type, out Queue<IRefrence> refrences))
             {

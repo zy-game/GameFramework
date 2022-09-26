@@ -43,7 +43,7 @@ namespace GameFramework.Editor.ResoueceEditor
             {
                 Directory.CreateDirectory(Application.streamingAssetsPath);
             }
-            string localSettingPath = Path.Combine(Application.streamingAssetsPath, "hotfix", Runtime.BASIC_FILE_LIST_NAME);
+            string localSettingPath = Path.Combine(Application.streamingAssetsPath, Runtime.BASIC_FILE_LIST_NAME);
             if (!Directory.Exists(Path.GetDirectoryName(localSettingPath)))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(localSettingPath));
@@ -231,7 +231,7 @@ namespace GameFramework.Editor.ResoueceEditor
 
         private void SaveBundleList()
         {
-            string localSettingPath = Path.Combine(Application.streamingAssetsPath, "hotfix", Runtime.BASIC_FILE_LIST_NAME);
+            string localSettingPath = Path.Combine(Application.streamingAssetsPath, Runtime.BASIC_FILE_LIST_NAME);
             if (!Directory.Exists(Path.GetDirectoryName(localSettingPath)))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(localSettingPath));
@@ -271,7 +271,7 @@ namespace GameFramework.Editor.ResoueceEditor
             }
             else
             {
-                outputPath = Path.Combine(Application.streamingAssetsPath, "hotfix");
+                outputPath = Application.streamingAssetsPath;
 
             }
             if (!Directory.Exists(outputPath))

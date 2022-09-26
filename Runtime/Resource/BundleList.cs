@@ -65,7 +65,7 @@ namespace GameFramework.Resource
         /// <returns></returns>
         public BundleData GetBundleData(string name)
         {
-            return bundles.AsParallel().Where(x => x.name == name).FirstOrDefault();
+            return bundles.AsParallel().Where(x => x.name.ToLower() == name.ToLower()).FirstOrDefault();
         }
 
         /// <summary>
@@ -178,6 +178,26 @@ namespace GameFramework.Resource
         public bool HasAssetData(string assetName)
         {
             return assets.AsParallel().Where(x => x.name == assetName).FirstOrDefault() != default;
+        }
+
+        public override bool Equals(object obj)
+        {
+            BundleData bundleData = (BundleData)obj;
+            if (bundleData == null)
+            {
+                return false;
+            }
+            return bundleData.version == version && bundleData.crc32 == crc32 && bundleData.time == time;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return CatJson.JsonParser.ToJson(this);
         }
     }
 

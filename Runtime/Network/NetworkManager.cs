@@ -406,6 +406,7 @@ namespace GameFramework.Network
         /// <returns>响应数据</returns>
         private string GenerateHttpWebReponse(string url, string method, Dictionary<string, string> header, Dictionary<string, object> data)
         {
+            url = url.Replace("\\", "/");
             HttpWebRequest request = WebRequest.CreateHttp(url);
             request.Method = method;
             request.Proxy = null;
@@ -458,6 +459,7 @@ namespace GameFramework.Network
         /// <returns>响应数据</returns>
         private async Task<string> GenerateHttpWebReponseAsync(string url, string method, Dictionary<string, string> header, Dictionary<string, object> data)
         {
+            url = url.Replace("\\", "/");
             HttpWebRequest request = WebRequest.CreateHttp(url);
             request.Method = method;
             request.Proxy = null;
