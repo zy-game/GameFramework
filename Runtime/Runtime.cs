@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -7,18 +8,53 @@ using UnityEngine;
 
 namespace GameFramework
 {
+
+    public sealed class AppConfig
+    {
+        public const string HOTFIX_FILE_LIST_NAME = "hotfixFileList.ini";
+        public const string BASIC_FILE_LIST_NAME = "basicFileList.ini";
+    }
     /// <summary>
     /// 游戏运行时
     /// </summary>
     public sealed class Runtime
     {
+        sealed class INTERNAL_MonoBehaviour : MonoBehaviour
+        {
+            private void Update()
+            {
+                Runtime.Update();
+            }
+
+            private void OnApplicationQuit()
+            {
+                Runtime.Shutdown();
+            }
+        }
+        private static INTERNAL_MonoBehaviour runtime;
         private static List<IGameModule> modules = new List<IGameModule>();
 
-        public const string HOTFIX_FILE_LIST_NAME = "hotfixFileList.ini";
-        public const string BASIC_FILE_LIST_NAME = "basicFileList.ini";
-
         public static int MaxDownloadCount = 5;
+        [RuntimeInitializeOnLoadMethod]
+        static void Initialize()
+        {
+            runtime = new GameObject("Runtime").AddComponent<INTERNAL_MonoBehaviour>();
+            GameObject.DontDestroyOnLoad(runtime.gameObject);
+        }
 
+        public static void StartCoroutine(IEnumerator ie)
+        {
+
+        }
+
+        public static void StartCoroutine(AsyncOperation ie)
+        {
+            runtime.StartCoroutine(INTERNAL_RunningIEnumerator(ie));
+        }
+        static IEnumerator INTERNAL_RunningIEnumerator(AsyncOperation ie)
+        {
+            yield return ie;
+        }
         /// <summary>
         /// 关闭运行时
         /// </summary>
@@ -27,33 +63,6 @@ namespace GameFramework
             modules.ForEach(Loader.Release);
             modules.Clear();
         }
-
-        // /// <summary>
-        // /// 加载游戏模块
-        // /// </summary>
-        // /// <typeparam name="T">模块类型</typeparam>
-        // /// <returns>游戏模块</returns>
-        // public static T LoadGameModule<T>() where T : IGameModule
-        // {
-        //     return (T)LoadGameModule(typeof(T));
-        // }
-
-        // /// <summary>
-        // /// 加载游戏模块
-        // /// </summary>
-        // /// <param name="gameModuleType">模块类型</param>
-        // /// <returns>游戏模块</returns>
-        // public static IGameModule LoadGameModule(Type gameModuleType)
-        // {
-        //     IGameModule gameModule = GetGameModule(gameModuleType);
-        //     if (gameModule != null)
-        //     {
-        //         return gameModule;
-        //     }
-        //     gameModule = (IGameModule)Loader.Generate(gameModuleType);
-        //     modules.Add(gameModule);
-        //     return gameModule;
-        // }
 
         /// <summary>
         /// 获取游戏模块
@@ -86,16 +95,16 @@ namespace GameFramework
         /// 卸载模块
         /// </summary>
         /// <typeparam name="T">模块类型</typeparam>
-        public static void ShutdowmModule<T>() where T : IGameModule
+        public static void UnloadModule<T>() where T : IGameModule
         {
-            ShutdowmModule(typeof(T));
+            UnloadModule(typeof(T));
         }
 
         /// <summary>
         /// 卸载模块
         /// </summary>
         /// <param name="type">模块类型</param>
-        public static void ShutdowmModule(Type type)
+        public static void UnloadModule(Type type)
         {
             IGameModule gameModule = GetGameModule(type);
             if (gameModule == null)

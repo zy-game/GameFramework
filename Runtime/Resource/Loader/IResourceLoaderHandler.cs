@@ -9,5 +9,6 @@ namespace GameFramework.Resource
         ResHandle LoadAsset(string assetName);
         Task<ResHandle> LoadAssetAsync(string assetName);
         void UnloadAsset(Object assetObject);
+        void Update();
     }
 }

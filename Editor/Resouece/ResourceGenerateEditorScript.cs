@@ -43,7 +43,7 @@ namespace GameFramework.Editor.ResoueceEditor
             {
                 Directory.CreateDirectory(Application.streamingAssetsPath);
             }
-            string localSettingPath = Path.Combine(Application.streamingAssetsPath, Runtime.BASIC_FILE_LIST_NAME);
+            string localSettingPath = Path.Combine(Application.streamingAssetsPath, AppConfig.HOTFIX_FILE_LIST_NAME);
             if (!Directory.Exists(Path.GetDirectoryName(localSettingPath)))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(localSettingPath));
@@ -60,8 +60,8 @@ namespace GameFramework.Editor.ResoueceEditor
             string dataPath = EditorPrefs.GetString(HOTFIX_RESOURCE_PATH_NAME);
             if (string.IsNullOrEmpty(dataPath))
             {
-                string defaultName = Path.GetFileNameWithoutExtension(Runtime.HOTFIX_FILE_LIST_NAME);
-                string extension = Path.GetExtension(Runtime.HOTFIX_FILE_LIST_NAME).Replace(".", "");
+                string defaultName = Path.GetFileNameWithoutExtension(AppConfig.HOTFIX_FILE_LIST_NAME);
+                string extension = Path.GetExtension(AppConfig.HOTFIX_FILE_LIST_NAME).Replace(".", "");
                 dataPath = EditorUtility.SaveFilePanel("选择资源配置保存路径", Application.dataPath, defaultName, extension);
                 if (string.IsNullOrEmpty(dataPath))
                 {
@@ -231,7 +231,7 @@ namespace GameFramework.Editor.ResoueceEditor
 
         private void SaveBundleList()
         {
-            string localSettingPath = Path.Combine(Application.streamingAssetsPath, Runtime.BASIC_FILE_LIST_NAME);
+            string localSettingPath = Path.Combine(Application.streamingAssetsPath, AppConfig.HOTFIX_FILE_LIST_NAME);
             if (!Directory.Exists(Path.GetDirectoryName(localSettingPath)))
             {
                 Directory.CreateDirectory(Path.GetDirectoryName(localSettingPath));
@@ -241,8 +241,8 @@ namespace GameFramework.Editor.ResoueceEditor
             string dataPath = EditorPrefs.GetString(HOTFIX_RESOURCE_PATH_NAME);
             if (string.IsNullOrEmpty(dataPath))
             {
-                string defaultName = Path.GetFileNameWithoutExtension(Runtime.HOTFIX_FILE_LIST_NAME);
-                string extension = Path.GetExtension(Runtime.HOTFIX_FILE_LIST_NAME);
+                string defaultName = Path.GetFileNameWithoutExtension(AppConfig.HOTFIX_FILE_LIST_NAME);
+                string extension = Path.GetExtension(AppConfig.HOTFIX_FILE_LIST_NAME);
                 dataPath = EditorUtility.SaveFilePanel("选择资源配置保存路径", Application.dataPath, defaultName, extension);
                 if (string.IsNullOrEmpty(dataPath))
                 {

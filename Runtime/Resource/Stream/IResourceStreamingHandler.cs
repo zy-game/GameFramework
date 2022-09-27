@@ -11,7 +11,8 @@ namespace GameFramework.Resource
         Task<DataStream> ReadPersistentDataAsync(string fileName);
         void WriteSync(string fileName, DataStream stream);
         Task WriteAsync(string fileName, DataStream stream);
-        bool Exist(string fileName);
+        bool ExistStreamingAsset(string fileName);
+        bool ExistPersistentAsset(string fileName);
         void Delete(string fileName);
     }
 
@@ -22,7 +23,12 @@ namespace GameFramework.Resource
             throw new System.NotImplementedException();
         }
 
-        public bool Exist(string fileName)
+        public bool ExistPersistentAsset(string fileName)
+        {
+            throw new System.NotImplementedException();
+        }
+
+        public bool ExistStreamingAsset(string fileName)
         {
             throw new System.NotImplementedException();
         }

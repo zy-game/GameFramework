@@ -16,21 +16,6 @@ namespace GameFramework.Resource
     public sealed class ResourceManager : IResourceManager
     {
         /// <summary>
-        /// 本地资源列表
-        /// </summary>
-        private BundleList bundleList;
-
-        /// <summary>
-        /// 资源缓存列表
-        /// </summary>
-        private List<BundleHandle> bundleCacheList;
-
-        /// <summary>
-        /// 资源加载列表
-        /// </summary>
-        private List<BundleHandle> bundleHandlers;
-
-        /// <summary>
         /// 资源模式
         /// </summary>
         private ResouceModle resouceModle;
@@ -55,8 +40,6 @@ namespace GameFramework.Resource
         /// </summary>
         public ResourceManager()
         {
-            bundleCacheList = new List<BundleHandle>();
-            bundleHandlers = new List<BundleHandle>();
         }
 
         /// <summary>
@@ -141,20 +124,12 @@ namespace GameFramework.Resource
         /// </summary>
         public void Release()
         {
-            Loader.Release(bundleList);
             Loader.Release(resourceLoaderHandler);
             Loader.Release(resourceUpdateHandler);
             Loader.Release(resourceStreamingHandler);
-            bundleList = null;
-            foreach (var item in bundleHandlers)
-            {
-                Loader.Release(item);
-            }
-            foreach (var item in bundleCacheList)
-            {
-                Loader.Release(item);
-            }
-            bundleHandlers.Clear();
+            resourceLoaderHandler = null;
+            resourceUpdateHandler = null;
+            resourceStreamingHandler = null;
         }
 
         /// <summary>
@@ -162,25 +137,11 @@ namespace GameFramework.Resource
         /// </summary>
         public void Update()
         {
-            for (int i = bundleHandlers.Count - 1; i >= 0; i--)
+            if (resourceLoaderHandler == null)
             {
-                if (bundleHandlers[i].refCount > 0)
-                {
-                    continue;
-                }
-                bundleCacheList.Add(bundleHandlers[i]);
-                bundleHandlers.Remove(bundleHandlers[i]);
+                return;
             }
-
-            for (int i = bundleCacheList.Count - 1; i >= 0; i--)
-            {
-                if (!bundleCacheList[i].CanUnload())
-                {
-                    continue;
-                }
-                Loader.Release(bundleCacheList[i]);
-                bundleCacheList.Remove(bundleCacheList[i]);
-            }
+            resourceLoaderHandler.Update();
         }
 
         /// <summary>
@@ -210,8 +171,19 @@ namespace GameFramework.Resource
         /// <param name="compoleted"></param>
         public void CheckoutResourceUpdate(string url, GameFrameworkAction<float> progresCallback, GameFrameworkAction<ResourceUpdateState> compoleted)
         {
-            resourceUpdateHandler.SetResourceDownloadUrl(url);
-            resourceUpdateHandler.CheckoutResourceUpdate(progresCallback, compoleted);
+            DefaultResourceUpdateListenerHandle defaultResourceUpdateListenerHandle = DefaultResourceUpdateListenerHandle.Generate(progresCallback, compoleted);
+            if (resouceModle == ResouceModle.Streaming)
+            {
+                resourceUpdateHandler.CheckoutStreamingAssetListUpdate(defaultResourceUpdateListenerHandle);
+                return;
+            }
+            if (resouceModle == ResouceModle.Hotfix)
+            {
+                resourceUpdateHandler.ChekeoutHotfixResourceListUpdate(url, defaultResourceUpdateListenerHandle);
+                return;
+            }
+            defaultResourceUpdateListenerHandle.Progres(1f);
+            defaultResourceUpdateListenerHandle.Completed(ResourceUpdateState.Success);
         }
 
         /// <summary>
@@ -220,8 +192,19 @@ namespace GameFramework.Resource
         /// <typeparam name="IResourceUpdateListenerHandler"></typeparam>
         public void CheckoutResourceUpdate<TResourceUpdateListenerHandler>(string url) where TResourceUpdateListenerHandler : IResourceUpdateListenerHandler
         {
-            resourceUpdateHandler.SetResourceDownloadUrl(url);
-            resourceUpdateHandler.CheckoutResourceUpdate<IResourceUpdateListenerHandler>();
+            TResourceUpdateListenerHandler resourceUpdateListenerHandler = Loader.Generate<TResourceUpdateListenerHandler>();
+            if (resouceModle == ResouceModle.Streaming)
+            {
+                resourceUpdateHandler.CheckoutStreamingAssetListUpdate(resourceUpdateListenerHandler);
+                return;
+            }
+            if (resouceModle == ResouceModle.Hotfix)
+            {
+                resourceUpdateHandler.ChekeoutHotfixResourceListUpdate(url, resourceUpdateListenerHandler);
+                return;
+            }
+            resourceUpdateListenerHandler.Progres(1f);
+            resourceUpdateListenerHandler.Completed(ResourceUpdateState.Success);
         }
     }
 }

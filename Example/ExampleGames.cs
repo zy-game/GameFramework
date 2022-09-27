@@ -7,12 +7,14 @@ using GameFramework.Resource;
 
 public class ExampleGames : MonoBehaviour
 {
-    public GameFramework.Resource.ResouceModle ResouceModle;
-    async void Start()
+
+    public ResouceModle ResouceModle;
+
+    void Start()
     {
         ResourceManager resourceManager = Runtime.GetGameModule<ResourceManager>();
         resourceManager.SetResourceModle(ResouceModle);
-        resourceManager.CheckoutResourceUpdate("",
+        resourceManager.CheckoutResourceUpdate(Application.streamingAssetsPath,
         args =>
         {
             Debug.Log("resource update progres:" + args);
