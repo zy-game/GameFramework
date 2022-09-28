@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Buffers;
 using System;
 using System.Text;
@@ -39,8 +40,13 @@ namespace GameFramework
 
         public static DataStream Generate(byte[] bytes)
         {
+            if (bytes == null || bytes.Length <= 0)
+            {
+                throw GameFrameworkException.Generate("cannot write null or empty data to the stream");
+            }
             DataStream stream = Loader.Generate<DataStream>();
             stream.buffer = bytes;
+            stream.position = bytes.Length;
             return stream;
         }
 

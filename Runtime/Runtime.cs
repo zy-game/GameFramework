@@ -11,8 +11,7 @@ namespace GameFramework
 
     public sealed class AppConfig
     {
-        public const string HOTFIX_FILE_LIST_NAME = "hotfixFileList.ini";
-        public const string BASIC_FILE_LIST_NAME = "basicFileList.ini";
+        public const string HOTFIX_FILE_LIST_NAME = "fileList.ini";
     }
     /// <summary>
     /// 游戏运行时
@@ -44,7 +43,7 @@ namespace GameFramework
 
         public static void StartCoroutine(IEnumerator ie)
         {
-
+            runtime.StartCoroutine(ie);
         }
 
         public static void StartCoroutine(AsyncOperation ie)

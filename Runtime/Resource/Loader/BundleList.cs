@@ -216,6 +216,11 @@ namespace GameFramework.Resource
         /// </summary>
         public string guid;
 
+        /// <summary>
+        /// 资源路径
+        /// </summary>
+        public string path;
+
         public void Release()
         {
         }

@@ -49,14 +49,14 @@ namespace GameFramework.Resource
         public void SetResourceModle(ResouceModle modle)
         {
             resouceModle = modle;
+
             resourceStreamingHandler = Loader.Generate<DefaultResourceStreamingHandler>();
-            resourceStreamingHandler.SetResourceModle(resouceModle);
             resourceLoaderHandler = Loader.Generate<DefaultResourceLoaderHandler>();
+
             resourceLoaderHandler.SetResourceModel(resouceModle);
             resourceLoaderHandler.SetResourceStreamingHandler(resourceStreamingHandler);
 
             resourceUpdateHandler = Loader.Generate<DefaultResourceUpdateHandler>();
-            resourceUpdateHandler.SetResourceModel(resouceModle);
             resourceUpdateHandler.SetResourceStreamingHandler(resourceStreamingHandler);
         }
 
@@ -172,7 +172,7 @@ namespace GameFramework.Resource
         public void CheckoutResourceUpdate(string url, GameFrameworkAction<float> progresCallback, GameFrameworkAction<ResourceUpdateState> compoleted)
         {
             DefaultResourceUpdateListenerHandle defaultResourceUpdateListenerHandle = DefaultResourceUpdateListenerHandle.Generate(progresCallback, compoleted);
-            if (resouceModle == ResouceModle.Streaming)
+            if (resouceModle == ResouceModle.Streaming && !Application.isEditor)
             {
                 resourceUpdateHandler.CheckoutStreamingAssetListUpdate(defaultResourceUpdateListenerHandle);
                 return;
