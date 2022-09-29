@@ -31,6 +31,27 @@ namespace GameFramework.Resource
             return DataStream.Generate(File.ReadAllBytes(Path.Combine(Application.persistentDataPath, fileName)));
         }
 
+        public async Task<T> ReadResourceDataAsync<T>(string fileName) where T : Object
+        {
+            TaskCompletionSource<T> waiting = new TaskCompletionSource<T>();
+            ResourceRequest request = Resources.LoadAsync<T>(fileName);
+            request.completed += _ =>
+            {
+                if (!request.isDone)
+                {
+                    waiting.SetResult(default);
+                    return;
+                }
+                waiting.SetResult((T)request.asset);
+            };
+            return await waiting.Task;
+        }
+
+        public T ReadResourceDataSync<T>(string fileName) where T : Object
+        {
+            return Resources.Load<T>(fileName);
+        }
+
         public async Task<DataStream> ReadStreamingAssetDataAsync(string fileName)
         {
             if (Application.isEditor)

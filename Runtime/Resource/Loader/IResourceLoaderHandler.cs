@@ -4,7 +4,7 @@ namespace GameFramework.Resource
 {
     public interface IResourceLoaderHandler : IRefrence
     {
-        void SetResourceModel(ResouceModle modle);
+        void SetResourceModel(ResourceModle modle);
         void SetResourceStreamingHandler(IResourceStreamingHandler resourceReaderAndWriterHandler);
         ResHandle LoadAsset(string assetName);
         Task<ResHandle> LoadAssetAsync(string assetName);

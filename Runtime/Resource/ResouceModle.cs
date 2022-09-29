@@ -3,7 +3,7 @@ namespace GameFramework.Resource
     /// <summary>
     /// 资源管理器运行模式
     /// </summary>
-    public enum ResouceModle : byte
+    public enum ResourceModle : byte
     {
         /// <summary>
         /// 本地模式-

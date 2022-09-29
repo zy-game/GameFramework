@@ -8,9 +8,24 @@ namespace GameFramework.Resource
     /// </summary>
     public sealed class ResHandle : IRefrence
     {
-        public static ResHandle GenerateHandler(IResourceLoaderHandler resourceLoaderHandler, object assetObject)
+        internal static ResHandle GenerateHandler(BundleHandle handler, object assetObject)
         {
             return default;
+        }
+
+        internal static ResHandle GenerateHandler(IResourceLoaderHandler handler, object assetObject)
+        {
+            return default;
+        }
+
+        public bool CanUnload()
+        {
+            return false;
+        }
+
+        public void Free()
+        {
+
         }
 
         public void Release()

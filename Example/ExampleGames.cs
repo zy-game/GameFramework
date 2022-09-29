@@ -8,7 +8,7 @@ using GameFramework.Resource;
 public class ExampleGames : MonoBehaviour
 {
 
-    public ResouceModle ResouceModle;
+    public ResourceModle ResouceModle;
 
     void Start()
     {

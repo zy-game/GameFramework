@@ -15,7 +15,7 @@ namespace GameFramework.Resource
         /// 设置资源模式
         /// </summary>
         /// <param name="modle">资源模式</param>
-        void SetResourceModle(ResouceModle modle);
+        void SetResourceModle(ResourceModle modle);
 
         /// <summary>
         /// 加载资源

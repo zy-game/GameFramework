@@ -18,7 +18,7 @@ namespace GameFramework.Resource
         /// <summary>
         /// 资源模式
         /// </summary>
-        private ResouceModle resouceModle;
+        private ResourceModle resouceModle;
 
         /// <summary>
         /// 资源读写管道
@@ -46,7 +46,7 @@ namespace GameFramework.Resource
         /// 设置资源模式
         /// </summary>
         /// <param name="modle">资源模式</param>
-        public void SetResourceModle(ResouceModle modle)
+        public void SetResourceModle(ResourceModle modle)
         {
             resouceModle = modle;
 
@@ -172,12 +172,12 @@ namespace GameFramework.Resource
         public void CheckoutResourceUpdate(string url, GameFrameworkAction<float> progresCallback, GameFrameworkAction<ResourceUpdateState> compoleted)
         {
             DefaultResourceUpdateListenerHandle defaultResourceUpdateListenerHandle = DefaultResourceUpdateListenerHandle.Generate(progresCallback, compoleted);
-            if (resouceModle == ResouceModle.Streaming && !Application.isEditor)
+            if (resouceModle == ResourceModle.Streaming && !Application.isEditor)
             {
                 resourceUpdateHandler.CheckoutStreamingAssetListUpdate(defaultResourceUpdateListenerHandle);
                 return;
             }
-            if (resouceModle == ResouceModle.Hotfix)
+            if (resouceModle == ResourceModle.Hotfix)
             {
                 resourceUpdateHandler.ChekeoutHotfixResourceListUpdate(url, defaultResourceUpdateListenerHandle);
                 return;
@@ -193,12 +193,12 @@ namespace GameFramework.Resource
         public void CheckoutResourceUpdate<TResourceUpdateListenerHandler>(string url) where TResourceUpdateListenerHandler : IResourceUpdateListenerHandler
         {
             TResourceUpdateListenerHandler resourceUpdateListenerHandler = Loader.Generate<TResourceUpdateListenerHandler>();
-            if (resouceModle == ResouceModle.Streaming)
+            if (resouceModle == ResourceModle.Streaming)
             {
                 resourceUpdateHandler.CheckoutStreamingAssetListUpdate(resourceUpdateListenerHandler);
                 return;
             }
-            if (resouceModle == ResouceModle.Hotfix)
+            if (resouceModle == ResourceModle.Hotfix)
             {
                 resourceUpdateHandler.ChekeoutHotfixResourceListUpdate(url, resourceUpdateListenerHandler);
                 return;

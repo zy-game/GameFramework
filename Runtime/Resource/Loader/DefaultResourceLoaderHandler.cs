@@ -1,3 +1,4 @@
+using System.IO;
 using System.Threading;
 using System.Collections.Generic;
 using System;
@@ -11,22 +12,80 @@ namespace GameFramework.Resource
     sealed class DefaultResourceLoaderHandler : IResourceLoaderHandler
     {
         private BundleList bundleList;
-        private ResouceModle resouceModle;
-
-        private Dictionary<string, AssetBundle> bundles;
-        private IResourceStreamingHandler resourceStreamingHandler;
+        private AutoResetEvent waiter;
         private HashSet<string> loading;
-        private AutoResetEvent locker;
+        private ResourceModle resouceModle;
+        private Dictionary<string, BundleHandle> bundles;
+        private IResourceStreamingHandler resourceStreamingHandler;
+        private Dictionary<string, ResHandle> resourceResHandlerCacheing;
 
         public DefaultResourceLoaderHandler()
         {
-            locker = new AutoResetEvent(false);
             loading = new HashSet<string>();
-            bundles = new Dictionary<string, AssetBundle>();
+            waiter = new AutoResetEvent(false);
+            bundles = new Dictionary<string, BundleHandle>();
+            resourceResHandlerCacheing = new Dictionary<string, ResHandle>();
         }
 
         public ResHandle LoadAsset(string assetName)
         {
+            BundleData bundleData = GetBundleData(assetName);
+            if (resouceModle == ResourceModle.Resource)
+            {
+                if (resourceResHandlerCacheing.TryGetValue(assetName, out ResHandle resHandler))
+                {
+                    return resHandler;
+                }
+                AssetData assetData = bundleData.GetAssetData(assetName);
+                if (assetData == null)
+                {
+                    throw GameFrameworkException.Generate("not find asset:" + assetName);
+                }
+                Object assetObject = LoadAseetObjectFormResourceSync(assetData.path);
+                resHandler = ResHandle.GenerateHandler(this, assetObject);
+                resourceResHandlerCacheing.Add(assetName, resHandler);
+                return resHandler;
+            }
+
+            if (!bundles.TryGetValue(bundleData.name, out BundleHandle handler))
+            {
+                handler = Loader.Generate<BundleHandle>();
+                handler.LoadBundleSync(bundleData.name);
+                bundles.Add(bundleData.name, handler);
+            }
+            return handler.LoadAsset(assetName);
+        }
+
+        private Object LoadAseetObjectFormResourceSync(string assetName)
+        {
+            Object assetObject = Resources.Load(assetName);
+            if (assetObject == null)
+            {
+                throw GameFrameworkException.Generate("load asset error:" + assetName);
+            }
+            return assetObject;
+        }
+
+        private Task<ResHandle> LoadAseetObjectFormResourceAsync(string assetName)
+        {
+            loading.Add(assetName);
+            TaskCompletionSource<ResHandle> waiting = new TaskCompletionSource<ResHandle>();
+            ResourceRequest request = Resources.LoadAsync(assetName);
+            request.completed += _ =>
+            {
+                ResHandle resHandle = null;
+                if (request.isDone)
+                {
+                    resHandle = ResHandle.GenerateHandler(this, request.asset);
+                }
+
+                waiting.SetResult(resHandle);
+            };
+            return waiting.Task;
+        }
+
+        private BundleData GetBundleData(string assetName)
+        {
             LoadBundleList();
             if (bundleList == null)
             {
@@ -37,120 +96,109 @@ namespace GameFramework.Resource
             {
                 throw GameFrameworkException.Generate("The resource does not exist in the resource list. Please check whether the resource has been added to the resource list and packaged");
             }
-            ResHandle resHandle = null;
-            if (resouceModle == ResouceModle.Resource)
-            {
-                AssetData assetData = bundleData.GetAssetData(assetName);
-                resHandle = ResHandle.GenerateHandler(this, Resources.Load(assetData.path));
-                return resHandle;
-            }
-
-            if (!bundles.TryGetValue(bundleData.name, out AssetBundle bundle))
-            {
-                DataStream stream = null;
-                if (resouceModle == ResouceModle.Streaming)
-                    stream = this.resourceStreamingHandler.ReadStreamingAssetDataSync(bundleData.name);
-                else
-                    stream = this.resourceStreamingHandler.ReadPersistentDataSync(bundleData.name);
-
-                bundle = AssetBundle.LoadFromMemory(stream.bytes);
-                if (bundle == null)
-                {
-                    return default;
-                }
-                bundles.Add(bundleData.name, bundle);
-            }
-            resHandle = ResHandle.GenerateHandler(this, bundle.LoadAsset(assetName));
-            return resHandle;
+            return bundleData;
         }
-
         public async Task<ResHandle> LoadAssetAsync(string assetName)
         {
-            LoadBundleList();
-            if (bundleList == null)
+            BundleData bundleData = GetBundleData(assetName);
+            bool isWatingOhterThreadLoadingCompleted = false;
+            if (resouceModle == ResourceModle.Resource)
             {
-                throw GameFrameworkException.Generate("loading bundlelist error");
-            }
-            BundleData bundleData = bundleList.GetBundleDataWithAsset(assetName);
-            if (bundleData == null)
-            {
-                throw GameFrameworkException.Generate("The resource does not exist in the resource list. Please check whether the resource has been added to the resource list and packaged");
-            }
-            TaskCompletionSource<ResHandle> waiting = new TaskCompletionSource<ResHandle>();
-            if (resouceModle == ResouceModle.Resource)
-            {
-                AssetData assetData = bundleData.GetAssetData(assetName);
-                ResourceRequest request = Resources.LoadAsync(assetData.path);
-                request.completed += _ =>
+                if (!loading.Contains(assetName))
                 {
-                    if (!request.isDone)
-                    {
-                        waiting.SetException(GameFrameworkException.Generate("load asset error"));
-                        return;
-                    }
-                    waiting.SetResult(ResHandle.GenerateHandler(this, request.asset));
-                };
-                return await waiting.Task;
-            }
-            if (loading.Contains(bundleData.name))
-            {
-                locker.WaitOne();
-            }
-            TaskCompletionSource waitingAssetBundle = null;
-            if (!bundles.TryGetValue(bundleData.name, out AssetBundle bundle))
-            {
-                waitingAssetBundle = new TaskCompletionSource();
-                loading.Add(bundleData.name);
-                DataStream stream = null;
-                
-                if (resouceModle == ResouceModle.Streaming)
-                    stream = await this.resourceStreamingHandler.ReadStreamingAssetDataAsync(bundleData.name);
-                else
-                    stream = await this.resourceStreamingHandler.ReadPersistentDataAsync(bundleData.name);
-
-                AssetBundleCreateRequest request = AssetBundle.LoadFromMemoryAsync(stream.bytes);
-                request.completed += _ =>
-                {
-                    if (!request.isDone)
-                    {
-                        return;
-                    }
-                    bundles.Add(bundleData.name, bundle);
-                    loading.Remove(bundleData.name);
-                    locker.Set();
-                    waitingAssetBundle.Complete();
-                };
-            }
-            if (waitingAssetBundle != null)
-            {
-                await waitingAssetBundle.Task;
-            }
-            AssetBundleRequest request1 = bundle.LoadAssetAsync(assetName);
-            request1.completed += _ =>
-            {
-                if (!request1.isDone)
-                {
-                    waiting.SetException(GameFrameworkException.Generate("load asset error:" + assetName));
-                    return;
+                    isWatingOhterThreadLoadingCompleted = true;
+                    waiter.WaitOne(TimeSpan.FromSeconds(10));
                 }
-                waiting.SetResult(ResHandle.GenerateHandler(this, request1.asset));
-            };
-            return await waiting.Task;
+                if (resourceResHandlerCacheing.TryGetValue(assetName, out ResHandle resHandler))
+                {
+                    return resHandler;
+                }
+                if (isWatingOhterThreadLoadingCompleted)
+                {
+                    return null;
+                }
+                AssetData assetData = bundleData.GetAssetData(assetName);
+                resHandler = await LoadAseetObjectFormResourceAsync(assetData.path);
+                if (resHandler != null)
+                {
+                    resourceResHandlerCacheing.Add(assetName, resHandler);
+                }
+                loading.Remove(assetName);
+                waiter.Set();
+                return resHandler;
+            }
+
+            if (!loading.Contains(assetName))
+            {
+                isWatingOhterThreadLoadingCompleted = true;
+                waiter.WaitOne(TimeSpan.FromSeconds(10));
+            }
+            if (!bundles.TryGetValue(bundleData.name, out BundleHandle handler))
+            {
+                if (isWatingOhterThreadLoadingCompleted)
+                {
+                    return null;
+                }
+                loading.Add(bundleData.name);
+                handler = Loader.Generate<BundleHandle>();
+                bool state = await handler.LoadBundleAsync(bundleData.name);
+                if (state)
+                {
+                    bundles.Add(bundleData.name, handler);
+                }
+                loading.Remove(bundleData.name);
+                waiter.Set();
+            }
+            return await handler.LoadAssetAsync(assetName);
         }
 
-        private void LoadBundleList()
+        private async void LoadBundleList()
         {
-            if (bundleList == null)
+            if (bundleList != null)
             {
-
+                return;
             }
+            string bundleListString = string.Empty;
+            if (resouceModle == ResourceModle.Resource)
+            {
+                TextAsset textAsset = await resourceStreamingHandler.ReadResourceDataAsync<TextAsset>(Path.GetFileNameWithoutExtension(AppConfig.HOTFIX_FILE_LIST_NAME));
+                bundleListString = textAsset.text;
+            }
+            else
+            {
+                DataStream stream = null;
+                if (resouceModle == ResourceModle.Streaming)
+                {
+                    stream = await this.resourceStreamingHandler.ReadStreamingAssetDataAsync(AppConfig.HOTFIX_FILE_LIST_NAME);
+                }
+                else
+                {
+                    stream = await this.resourceStreamingHandler.ReadPersistentDataAsync(AppConfig.HOTFIX_FILE_LIST_NAME);
+                }
+
+                if (stream == null || stream.position <= 0)
+                {
+                    throw GameFrameworkException.Generate("read file error:" + AppConfig.HOTFIX_FILE_LIST_NAME);
+                }
+                bundleListString = stream.ToString();
+            }
+            bundleList = CatJson.JsonParser.ParseJson<BundleList>(bundleListString);
+            if (bundleList != null)
+            {
+                return;
+            }
+            throw GameFrameworkException.Generate("load bundle list error");
         }
 
         public void Release()
         {
+            Loader.Release(this.bundleList);
+            this.resourceStreamingHandler = null;
+
+            bundles.Clear();
         }
 
-        public void SetResourceModel(ResouceModle modle)
+        public void SetResourceModel(ResourceModle modle)
         {
             resouceModle = modle;
         }
@@ -162,10 +210,64 @@ namespace GameFramework.Resource
 
         public void UnloadAsset(Object assetObject)
         {
+            if (resourceResHandlerCacheing.TryGetValue(assetObject.name, out ResHandle handle))
+            {
+                handle.Free();
+                return;
+            }
+            if (bundleList == null)
+            {
+                return;
+            }
+            BundleData bundleData = bundleList.GetBundleDataWithAsset(assetObject.name);
+            if (bundleData == null)
+            {
+                return;
+            }
+            if (bundles.TryGetValue(bundleData.name, out BundleHandle handler))
+            {
+                handler.UnloadAsset(assetObject);
+            }
         }
-
+        List<string> waitingUnloadResHandle = new List<string>();
+        List<string> waitingUnloadBundleHandler = new List<string>();
         public void Update()
         {
+            foreach (var item in resourceResHandlerCacheing)
+            {
+                if (item.Value.CanUnload())
+                {
+                    waitingUnloadResHandle.Add(item.Key);
+                }
+            }
+
+            foreach (var item in bundles)
+            {
+                if (item.Value.CanUnload())
+                {
+                    waitingUnloadBundleHandler.Add(item.Key);
+                }
+            }
+
+            if (waitingUnloadResHandle.Count > 0)
+            {
+                for (int i = waitingUnloadResHandle.Count - 1; i >= 0; i--)
+                {
+                    Loader.Release(resourceResHandlerCacheing[waitingUnloadResHandle[i]]);
+                    resourceResHandlerCacheing.Remove(waitingUnloadResHandle[i]);
+                }
+                waitingUnloadResHandle.Clear();
+            }
+
+            if (waitingUnloadBundleHandler.Count > 0)
+            {
+                for (int i = waitingUnloadBundleHandler.Count - 1; i >= 0; i--)
+                {
+                    Loader.Release(bundles[waitingUnloadBundleHandler[i]]);
+                    bundles.Remove(waitingUnloadBundleHandler[i]);
+                }
+                waitingUnloadBundleHandler.Clear();
+            }
         }
     }
 }
