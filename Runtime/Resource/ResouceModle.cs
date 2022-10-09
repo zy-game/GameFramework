@@ -8,10 +8,6 @@ namespace GameFramework.Resource
         /// <summary>
         /// 本地模式-
         /// </summary>
-        Resource,
-        /// <summary>
-        /// 本地模式-
-        /// </summary>
         Streaming,
         /// <summary>
         /// 热更新模式

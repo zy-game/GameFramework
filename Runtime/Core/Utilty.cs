@@ -1,6 +1,8 @@
 ﻿using System;
 using UnityEngine;
 using GameFramework.Game;
+using System.Collections.Generic;
+using GameFramework.Resource;
 
 namespace GameFramework
 {
@@ -36,29 +38,91 @@ namespace GameFramework
             }
         }
 
-        /// <summary>
-        /// 获取与实体绑定的游戏物体
-        /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
-        public static GameObject GetObject(this IEntity entity)
+        public static void SetParent(this GameObject basic, Transform parent)
         {
-            return GameContext.GetObject(entity.guid);
+            basic.SetParent(parent, Vector3.zero);
         }
 
-        /// <summary>
-        /// 删除当前实体
-        /// </summary>
-        /// <param name="entity"></param>
-        public static void DestoryEntity(this IEntity entity)
+        public static void SetParent(this GameObject basic, Transform parent, Vector3 position)
         {
-            GameObject gameObject = entity.GetObject();
-            if (gameObject != null)
+            basic.SetParent(parent, position, Vector3.zero);
+        }
+
+        public static void SetParent(this GameObject basic, Transform parent, Vector3 position, Vector3 rotation)
+        {
+            basic.SetParent(parent, position, rotation, Vector3.one);
+        }
+
+        public static void SetParent(this GameObject basic, Transform parent, Vector3 position, Vector3 rotation, Vector3 scale)
+        {
+            if (basic == null)
             {
-                GameObject.DestroyImmediate(gameObject);
                 return;
             }
-            entity.owner.RemoveEntity(entity.guid);
+            basic.transform.SetParent(parent);
+            basic.transform.localPosition = position;
+            basic.transform.localRotation = Quaternion.Euler(rotation);
+            basic.transform.localScale = scale;
+        }
+
+        public static void SetParent(this GameObject basic, GameObject parent)
+        {
+            basic.SetParent(parent, Vector3.zero);
+        }
+
+        public static void SetParent(this GameObject basic, GameObject parent, Vector3 position)
+        {
+            basic.SetParent(parent, position, Vector3.zero);
+        }
+
+        public static void SetParent(this GameObject basic, GameObject parent, Vector3 position, Vector3 rotation)
+        {
+            basic.SetParent(parent, position, rotation, Vector3.one);
+        }
+
+        public static void SetParent(this GameObject basic, GameObject parent, Vector3 position, Vector3 rotation, Vector3 scale)
+        {
+            basic.SetParent(parent.transform, position, rotation, scale);
+        }
+
+        public static void SetParent(this GameObject basic, Component parent)
+        {
+            basic.SetParent(parent, Vector3.zero);
+        }
+
+        public static void SetParent(this GameObject basic, Component parent, Vector3 position)
+        {
+            basic.SetParent(parent, position, Vector3.zero);
+        }
+
+        public static void SetParent(this GameObject basic, Component parent, Vector3 position, Vector3 rotation)
+        {
+            basic.SetParent(parent, position, rotation, Vector3.one);
+        }
+
+        public static void SetParent(this GameObject basic, Component parent, Vector3 position, Vector3 rotation, Vector3 scale)
+        {
+            basic.SetParent(parent.transform, position, rotation, scale);
+        }
+
+        public static void SetParent(this Component basic, Component parent)
+        {
+            basic.SetParent(parent, Vector3.zero);
+        }
+
+        public static void SetParent(this Component basic, Component parent, Vector3 position)
+        {
+            basic.SetParent(parent, position, Vector3.zero);
+        }
+
+        public static void SetParent(this Component basic, Component parent, Vector3 position, Vector3 rotation)
+        {
+            basic.SetParent(parent, position, rotation, Vector3.one);
+        }
+
+        public static void SetParent(this Component basic, Component parent, Vector3 position, Vector3 rotation, Vector3 scale)
+        {
+            basic.gameObject.SetParent(parent.transform, position, rotation, scale);
         }
     }
 }

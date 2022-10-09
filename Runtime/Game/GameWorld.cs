@@ -7,7 +7,7 @@ namespace GameFramework.Game
     /// <summary>
     /// 游戏世界
     /// </summary>
-    public abstract class GameWorld : IGame
+    public abstract class GameWorld : IGameWorld
     {
         private List<IGameScript> scripts;
         private Dictionary<string, IEntity> entitys;
@@ -29,7 +29,7 @@ namespace GameFramework.Game
         /// 游戏相机
         /// </summary>
         /// <value></value>
-        public Camera GameCamera
+        public Camera MainCamera
         {
             get;
         }
@@ -38,7 +38,17 @@ namespace GameFramework.Game
         /// UI相机
         /// </summary>
         /// <value></value>
-        public IUIManager UIManager
+        public IUIFormManager UIManager
+        {
+            get;
+            private set;
+        }
+
+        /// <summary>
+        /// 音效管理器
+        /// </summary>
+        /// <value></value>
+        public ISoundManager SoundManager
         {
             get;
             private set;
@@ -46,14 +56,16 @@ namespace GameFramework.Game
 
         public GameWorld()
         {
-            UIManager = new DefaultUIManager(this);
-            GameCamera = GameObject.Instantiate(Resources.Load<Camera>("MainCamera"));
-            if (GameCamera == null)
+            Resource.ResHandle handle = Runtime.GetGameModule<Resource.ResourceManager>().LoadAssetSync("MainCamera");
+            MainCamera = handle.Generate<GameObject>().GetComponent<Camera>();
+            if (MainCamera == null)
             {
                 throw GameFrameworkException.Generate("Resource not find MainCamera");
             }
             scripts = new List<IGameScript>();
             entitys = new Dictionary<string, IEntity>();
+            UIManager = DefaultUIFormManager.Generate(this);
+            SoundManager = DefaultSoundManager.Generate(this);
         }
 
         /// <summary>
@@ -99,9 +111,9 @@ namespace GameFramework.Game
         /// 加载游戏逻辑单元
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        public void LoadScript<T>() where T : IGameScript
+        public void AddScriptble<T>() where T : IGameScript
         {
-            UnloadScript<T>();
+            RemoveScriptble<T>();
             T script = Loader.Generate<T>();
             scripts.Add(script);
         }
@@ -123,6 +135,8 @@ namespace GameFramework.Game
             scripts.Clear();
             Loader.Release(UIManager);
             UIManager = null;
+            GameObject.DestroyImmediate(MainCamera.gameObject);
+            Debug.Log("release world");
         }
 
         /// <summary>
@@ -144,7 +158,7 @@ namespace GameFramework.Game
         /// 卸载逻辑单元
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        public void UnloadScript<T>() where T : IGameScript
+        public void RemoveScriptble<T>() where T : IGameScript
         {
             IGameScript script = scripts.Find(x => x.GetType() == typeof(T));
             if (script == null)
@@ -165,7 +179,7 @@ namespace GameFramework.Game
             }
         }
 
-        private void SafeRun(GameFrameworkAction<IGame> runner)
+        private void SafeRun(GameFrameworkAction<IGameWorld> runner)
         {
             try
             {
@@ -175,6 +189,11 @@ namespace GameFramework.Game
             {
                 throw e;
             }
+        }
+
+        internal void INTERNAL_EntityComponentChange(IEntity entity)
+        {
+
         }
     }
 }

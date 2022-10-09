@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace GameFramework.Game
@@ -5,12 +6,12 @@ namespace GameFramework.Game
     /// <summary>
     /// 游戏入口
     /// </summary>
-    public interface IGame : IRefrence
+    public interface IGameWorld : IRefrence
     {
         /// <summary>
         /// 游戏名称
         /// </summary>
-        /// <value></value>
+        /// <value></value>S
         string name { get; }
 
         /// <summary>
@@ -23,25 +24,31 @@ namespace GameFramework.Game
         /// 主相机
         /// </summary>
         /// <value></value>
-        Camera GameCamera { get; }
+        Camera MainCamera { get; }
 
         /// <summary>
         /// UI相机
         /// </summary>
         /// <value></value>
-        IUIManager UIManager { get; }
+        IUIFormManager UIManager { get; }
+
+        /// <summary>
+        /// 音效管理器
+        /// </summary>
+        /// <value></value>
+        ISoundManager SoundManager { get; }
 
         /// <summary>
         /// 加载逻辑单元
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        void LoadScript<T>() where T : IGameScript;
+        void AddScriptble<T>() where T : IGameScript;
 
         /// <summary>
         /// 卸载逻辑单元
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        void UnloadScript<T>() where T : IGameScript;
+        void RemoveScriptble<T>() where T : IGameScript;
 
         /// <summary>
         /// 轮询
@@ -73,5 +80,18 @@ namespace GameFramework.Game
         /// </summary>
         /// <param name="id">实体编号</param>
         void RemoveEntity(string id);
+    }
+
+    public sealed class Context
+    {
+        public static IEntity[] GetEntities(params string[] componentTypeNames)
+        {
+            return default;
+        }
+
+        public static IEntity[] GetEntities(params Type[] componentTypes)
+        {
+            return default;
+        }
     }
 }

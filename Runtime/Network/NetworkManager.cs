@@ -248,6 +248,7 @@ namespace GameFramework.Network
             {
                 return default;
             }
+            UnityEngine.Debug.Log(result);
             return CatJson.JsonParser.ParseJson<T>(result);
         }
 

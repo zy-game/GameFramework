@@ -120,6 +120,11 @@ namespace GameFramework.Resource
         public long time;
 
         /// <summary>
+        /// 是否在安装包内
+        /// </summary>
+        public bool IsApk;
+
+        /// <summary>
         /// 资源列表
         /// </summary>
         public List<AssetData> assets;

@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 namespace GameFramework
 {
+    using System;
+    using UnityEngine;
     /// <summary>
     /// 引用对象
     /// </summary>

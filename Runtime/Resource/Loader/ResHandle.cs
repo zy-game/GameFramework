@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace GameFramework.Resource
 {
@@ -8,29 +9,36 @@ namespace GameFramework.Resource
     /// </summary>
     public sealed class ResHandle : IRefrence
     {
-        internal static ResHandle GenerateHandler(BundleHandle handler, object assetObject)
+        private Object _object;
+        private IBundleHandler handler;
+        internal static ResHandle GenerateHandler(IBundleHandler handler, Object assetObject)
         {
-            return default;
+            ResHandle resHandle = Loader.Generate<ResHandle>();
+            resHandle._object = assetObject;
+            resHandle.handler = handler;
+            return resHandle;
         }
 
-        internal static ResHandle GenerateHandler(IResourceLoaderHandler handler, object assetObject)
+        public T Generate<T>() where T : Object
         {
-            return default;
-        }
-
-        public bool CanUnload()
-        {
-            return false;
-        }
-
-        public void Free()
-        {
-
+            handler.AddRefrence();
+            if (typeof(T) == typeof(GameObject))
+            {
+                T result = (T)GameObject.Instantiate(_object);
+                result.name = _object.name;
+                return result;
+            }
+            return (T)_object;
         }
 
         public void Release()
         {
-            throw new System.NotImplementedException();
+            if (_object == null)
+            {
+                return;
+            }
+            handler = null;
+            _object = null;
         }
     }
 }

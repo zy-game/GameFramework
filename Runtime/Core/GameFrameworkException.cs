@@ -72,5 +72,14 @@ namespace GameFramework
         {
             Assert(target != null, new NullReferenceException());
         }
+
+        /// <summary>
+        /// 判断是否为空
+        /// </summary>
+        /// <param name="target">目标对象</param>
+        public static void IsNull(object target, object message)
+        {
+            Assert(target != null, new NullReferenceException(message.ToString()));
+        }
     }
 }

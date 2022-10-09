@@ -18,7 +18,7 @@ namespace GameFramework.Game
         /// 所属游戏
         /// </summary>
         /// <value></value>
-        IGame owner { get; }
+        IGameWorld owner { get; }
 
         /// <summary>
         /// 添加组件

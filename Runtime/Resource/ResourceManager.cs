@@ -51,7 +51,7 @@ namespace GameFramework.Resource
             resouceModle = modle;
 
             resourceStreamingHandler = Loader.Generate<DefaultResourceStreamingHandler>();
-            resourceLoaderHandler = Loader.Generate<DefaultResourceLoaderHandler>();
+            resourceLoaderHandler = Loader.Generate<ResourceLoaderHandler>();
 
             resourceLoaderHandler.SetResourceModel(resouceModle);
             resourceLoaderHandler.SetResourceStreamingHandler(resourceStreamingHandler);
@@ -87,7 +87,7 @@ namespace GameFramework.Resource
         /// <returns>文件数据流</returns>
         public Task<DataStream> ReadFileAsync(string fileName)
         {
-            return resourceStreamingHandler.ReadStreamingAssetDataAsync(fileName);
+            return resourceStreamingHandler.ReadPersistentDataAsync(fileName);
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace GameFramework.Resource
         /// <returns>文件数据流</returns>
         public DataStream ReadFileSync(string fileName)
         {
-            return resourceStreamingHandler.ReadStreamingAssetDataSync(fileName);
+            return resourceStreamingHandler.ReadPersistentDataSync(fileName);
         }
 
         /// <summary>
@@ -172,7 +172,7 @@ namespace GameFramework.Resource
         public void CheckoutResourceUpdate(string url, GameFrameworkAction<float> progresCallback, GameFrameworkAction<ResourceUpdateState> compoleted)
         {
             DefaultResourceUpdateListenerHandle defaultResourceUpdateListenerHandle = DefaultResourceUpdateListenerHandle.Generate(progresCallback, compoleted);
-            if (resouceModle == ResourceModle.Streaming && !Application.isEditor)
+            if (resouceModle == ResourceModle.Streaming)
             {
                 resourceUpdateHandler.CheckoutStreamingAssetListUpdate(defaultResourceUpdateListenerHandle);
                 return;

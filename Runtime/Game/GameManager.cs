@@ -6,24 +6,24 @@ namespace GameFramework.Game
     /// <summary>
     /// 游戏管理器
     /// </summary>
-    public sealed class WorldManager : IGameManager
+    public sealed class GameManager : IWorldManager
     {
-        private Dictionary<Type, IGame> games = new Dictionary<Type, IGame>();
+        private Dictionary<Type, IGameWorld> games = new Dictionary<Type, IGameWorld>();
 
         /// <summary>
         /// 当前游戏
         /// </summary>
         /// <value></value>
-        public IGame current { get; private set; }
+        public IGameWorld current { get; private set; }
 
         /// <summary>
         /// 打开游戏
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T OpenGame<T>() where T : IGame
+        public T OpenWorld<T>() where T : IGameWorld
         {
-            return (T)OpenGame(typeof(T));
+            return (T)OpenWorld(typeof(T));
         }
 
         /// <summary>
@@ -31,11 +31,12 @@ namespace GameFramework.Game
         /// </summary>
         /// <param name="gameType"></param>
         /// <returns></returns>
-        public IGame OpenGame(Type gameType)
+        public IGameWorld OpenWorld(Type gameType)
         {
-            if (!games.TryGetValue(gameType, out IGame game))
+            if (!games.TryGetValue(gameType, out IGameWorld game))
             {
-                game = (IGame)Loader.Generate(gameType);
+                game = (IGameWorld)Loader.Generate(gameType);
+                games.Add(gameType, game);
             }
             current = game;
             return game;
@@ -46,9 +47,9 @@ namespace GameFramework.Game
         /// </summary>
         /// <param name="gameTypeName"></param>
         /// <returns></returns>
-        public IGame OpenGame(string gameTypeName)
+        public IGameWorld OpenWorld(string gameTypeName)
         {
-            return OpenGame(Type.GetType(gameTypeName));
+            return OpenWorld(Type.GetType(gameTypeName));
         }
 
         /// <summary>
@@ -56,9 +57,9 @@ namespace GameFramework.Game
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T GetGame<T>() where T : IGame
+        public T GetWorld<T>() where T : IGameWorld
         {
-            return (T)GetGame(typeof(T));
+            return (T)GetWorld(typeof(T));
         }
 
         /// <summary>
@@ -66,9 +67,9 @@ namespace GameFramework.Game
         /// </summary>
         /// <param name="gameType"></param>
         /// <returns></returns>
-        public IGame GetGame(Type gameType)
+        public IGameWorld GetWorld(Type gameType)
         {
-            if (games.TryGetValue(gameType, out IGame game))
+            if (games.TryGetValue(gameType, out IGameWorld game))
             {
                 return game;
             }
@@ -80,27 +81,27 @@ namespace GameFramework.Game
         /// </summary>
         /// <param name="gameTypeName"></param>
         /// <returns></returns>
-        public IGame GetGame(string gameTypeName)
+        public IGameWorld GetWorld(string gameTypeName)
         {
-            return GetGame(Type.GetType(gameTypeName));
+            return GetWorld(Type.GetType(gameTypeName));
         }
 
         /// <summary>
         /// 关闭游戏
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        public void CloseGame<T>() where T : IGame
+        public void CloseWorld<T>() where T : IGameWorld
         {
-            CloseGame(typeof(T));
+            CloseWorld(typeof(T));
         }
 
         /// <summary>
         /// 关闭游戏
         /// </summary>
         /// <param name="gameType"></param>
-        public void CloseGame(Type gameType)
+        public void CloseWorld(Type gameType)
         {
-            IGame game = GetGame(gameType);
+            IGameWorld game = GetWorld(gameType);
             if (game == null)
             {
                 return;
@@ -113,9 +114,9 @@ namespace GameFramework.Game
         /// 关闭游戏
         /// </summary>
         /// <param name="gameTypeName"></param>
-        public void CloseGame(string gameTypeName)
+        public void CloseWorld(string gameTypeName)
         {
-            CloseGame(Type.GetType(gameTypeName));
+            CloseWorld(Type.GetType(gameTypeName));
         }
 
         /// <summary>
@@ -123,7 +124,7 @@ namespace GameFramework.Game
         /// </summary>
         public void Release()
         {
-            foreach (IGame item in games.Values)
+            foreach (IGameWorld item in games.Values)
             {
                 Loader.Release(item);
             }

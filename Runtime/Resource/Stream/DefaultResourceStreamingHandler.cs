@@ -23,11 +23,19 @@ namespace GameFramework.Resource
 
         public async Task<DataStream> ReadPersistentDataAsync(string fileName)
         {
+            if (!ExistPersistentAsset(fileName))
+            {
+                return default;
+            }
             return DataStream.Generate(await File.ReadAllBytesAsync(Path.Combine(Application.persistentDataPath, fileName)));
         }
 
         public DataStream ReadPersistentDataSync(string fileName)
         {
+            if (!ExistPersistentAsset(fileName))
+            {
+                return default;
+            }
             return DataStream.Generate(File.ReadAllBytes(Path.Combine(Application.persistentDataPath, fileName)));
         }
 
@@ -54,6 +62,10 @@ namespace GameFramework.Resource
 
         public async Task<DataStream> ReadStreamingAssetDataAsync(string fileName)
         {
+            if (ExistStreamingAsset(fileName))
+            {
+                return default;
+            }
             if (Application.isEditor)
             {
                 return DataStream.Generate(await File.ReadAllBytesAsync(Path.Combine(Application.streamingAssetsPath, fileName)));
@@ -73,6 +85,10 @@ namespace GameFramework.Resource
 
         public DataStream ReadStreamingAssetDataSync(string fileName)
         {
+            if (ExistStreamingAsset(fileName))
+            {
+                return default;
+            }
             if (Application.isEditor)
             {
                 return DataStream.Generate(File.ReadAllBytes(Path.Combine(Application.streamingAssetsPath, fileName)));

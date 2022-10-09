@@ -11,7 +11,8 @@ namespace GameFramework
 
     public sealed class AppConfig
     {
-        public const string HOTFIX_FILE_LIST_NAME = "fileList.ini";
+        public static string HOTFIX_FILE_LIST_NAME = "fileList.ini";
+        public static uint MaxResourceBundleCacheCount = 10;
     }
     /// <summary>
     /// 游戏运行时

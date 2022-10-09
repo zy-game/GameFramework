@@ -22,7 +22,7 @@ namespace GameFramework.Game
         /// 所属游戏
         /// </summary>
         /// <value></value>
-        public IGame owner { get; private set; }
+        public IGameWorld owner { get; private set; }
 
         public GameEntity()
         {
@@ -49,6 +49,11 @@ namespace GameFramework.Game
             }
             component = (IComponent)Loader.Generate(componentType);
             components.Add(componentType, component);
+            GameWorld gameWorld = (GameWorld)owner;
+            if (gameWorld != null)
+            {
+                gameWorld.INTERNAL_EntityComponentChange(this);
+            }
             return component;
         }
 
@@ -96,7 +101,7 @@ namespace GameFramework.Game
             return components.Values.ToArray();
         }
 
-        internal static GameEntity Generate(string guid, IGame game)
+        internal static GameEntity Generate(string guid, IGameWorld game)
         {
             GameEntity entity = Loader.Generate<GameEntity>();
             entity.guid = guid;
@@ -161,6 +166,12 @@ namespace GameFramework.Game
             {
                 Loader.Release(component);
                 components.Remove(componentType);
+                GameWorld gameWorld = (GameWorld)owner;
+                if (gameWorld == null)
+                {
+                    return;
+                }
+                gameWorld.INTERNAL_EntityComponentChange(this);
             }
         }
 

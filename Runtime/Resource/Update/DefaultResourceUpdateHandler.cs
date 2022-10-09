@@ -167,17 +167,17 @@ namespace GameFramework.Resource
             List<ResourceDownloadHandle> resourceDownloadHandles = new List<ResourceDownloadHandle>();
             List<ResourceDownloadHandle> completedResourceDoanloadHandles = new List<ResourceDownloadHandle>();
             ResourceUpdateState resourceUpdateState = ResourceUpdateState.Success;
-            //todo copy asset
             foreach (BundleData bundleData in needUpdateList)
             {
-                ResourceDownloadHandle downloadHandle = ResourceDownloadHandle.Generate(Path.Combine(Application.streamingAssetsPath, bundleData.name), async handle =>
+                ResourceDownloadHandle downloadHandle = ResourceDownloadHandle.Generate(Path.Combine(url, bundleData.name), async handle =>
                 {
-                    if (handle.state == ResourceUpdateState.Failure || handle.isDone == false)
+                    if (handle.state == ResourceUpdateState.Failure)
                     {
                         resourceUpdateState = handle.state;
                         return;
                     }
                     await resourceStreamingHandler.WriteAsync(bundleData.name, handle.stream);
+                    Debug.Log("write file completed:" + bundleData.name);
                     resourceDownloadHandles.Remove(handle);
                     completedResourceDoanloadHandles.Add(handle);
                     if (resourceDownloadHandles.Count > 0)
@@ -277,7 +277,7 @@ namespace GameFramework.Resource
         }
         private static IEnumerator StartDownloadResource(string url, ResourceDownloadHandle resourceDownloadHandle)
         {
-            UnityWebRequest request = new UnityWebRequest(url);
+            UnityWebRequest request = new UnityWebRequest(url.Replace("\\", "/"));
             request.downloadHandler = resourceDownloadHandle;
             request.timeout = 5;
             yield return request.SendWebRequest();
