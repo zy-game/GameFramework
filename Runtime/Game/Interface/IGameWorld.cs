@@ -82,16 +82,5 @@ namespace GameFramework.Game
         void RemoveEntity(string id);
     }
 
-    public sealed class Context
-    {
-        public static IEntity[] GetEntities(params string[] componentTypeNames)
-        {
-            return default;
-        }
-
-        public static IEntity[] GetEntities(params Type[] componentTypes)
-        {
-            return default;
-        }
-    }
+    
 }

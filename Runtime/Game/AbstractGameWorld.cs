@@ -1,13 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
+using UnityEngine.Jobs;
 
 namespace GameFramework.Game
 {
     /// <summary>
     /// 游戏世界
     /// </summary>
-    public abstract class GameWorld : IGameWorld
+    public abstract class AbstractGameWorld : IGameWorld
     {
         private List<IGameScript> scripts;
         private Dictionary<string, IEntity> entitys;
@@ -54,7 +56,7 @@ namespace GameFramework.Game
             private set;
         }
 
-        public GameWorld()
+        public AbstractGameWorld()
         {
             Resource.ResHandle handle = Runtime.GetGameModule<Resource.ResourceManager>().LoadAssetSync("MainCamera");
             MainCamera = handle.Generate<GameObject>().GetComponent<Camera>();
@@ -88,7 +90,7 @@ namespace GameFramework.Game
             {
                 throw GameFrameworkException.GenerateFormat("the guid is already exsit:{0}", guid);
             }
-            GameEntity gameEntity = GameEntity.Generate(guid, this);
+            DefaultGameEntity gameEntity = DefaultGameEntity.Generate(guid, this);
             entitys.Add(guid, gameEntity);
             return gameEntity;
         }
@@ -171,7 +173,7 @@ namespace GameFramework.Game
         /// <summary>
         /// 轮询
         /// </summary>
-        public virtual void Update()
+        public void Update()
         {
             for (int i = scripts.Count - 1; i >= 0; i--)
             {
@@ -190,10 +192,87 @@ namespace GameFramework.Game
                 throw e;
             }
         }
+    }
 
-        internal void INTERNAL_EntityComponentChange(IEntity entity)
+    public sealed class Context
+    {
+        class Chunk : IRefrence
+        {
+            private List<Type> componentTypes;
+            private List<IEntity> entities = new List<IEntity>();
+            public void Release()
+            {
+                entities.Clear();
+            }
+
+            public void SetTags(Type[] componentTypes)
+            {
+                this.componentTypes = componentTypes.ToList();
+            }
+
+            public void Add(IEntity entity)
+            {
+                entities.Add(entity);
+            }
+            public void Remove(IEntity entity)
+            {
+                entities.Remove(entity);
+            }
+            public bool Contains(Type[] componentTypes)
+            {
+                for (var i = 0; i < componentTypes.Length; i++)
+                {
+                    if (!this.componentTypes.Contains(componentTypes[i]))
+                    {
+                        return false;
+                    }
+                }
+                return true;
+            }
+
+            public IEntity[] GetEntities()
+            {
+                return entities.ToArray();
+            }
+        }
+        private static List<Chunk> chunks = new List<Chunk>();
+        internal static void INTERNAL_EntityComponentChange(IEntity entity, Type[] componentTypes)
         {
 
+            chunks.ForEach(x => x.Remove(entity));
+            Chunk chunk = chunks.Find(x => x.Contains(componentTypes));
+            if (chunk == null)
+            {
+                chunk = Loader.Generate<Chunk>();
+                chunk.SetTags(componentTypes);
+                chunks.Add(chunk);
+            }
+            chunk.Add(entity);
+        }
+
+        public static IEntity[] GetEntities(params string[] componentTypeNames)
+        {
+            if (componentTypeNames == null || componentTypeNames.Length <= 0)
+            {
+                return default;
+            }
+
+            Type[] componentTypes = new Type[componentTypeNames.Length];
+            for (var i = 0; i < componentTypeNames.Length; i++)
+            {
+                componentTypes[i] = Type.GetType(componentTypeNames[i]);
+            }
+            return GetEntities(componentTypes);
+        }
+
+        public static IEntity[] GetEntities(params Type[] componentTypes)
+        {
+            Chunk chunk = chunks.Find(x => x.Contains(componentTypes));
+            if (chunk == null)
+            {
+                return Array.Empty<IEntity>();
+            }
+            return chunk.GetEntities();
         }
     }
 }

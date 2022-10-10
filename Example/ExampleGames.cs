@@ -17,6 +17,8 @@ public sealed class MovementScriptble : IGameScript
 {
     public void Executed(IGameWorld world)
     {
+        IEntity[] entities = Context.GetEntities(typeof(GameObjectComponent));
+        //Debug.Log("running" + entities?.Length);
     }
 
     public void Release()
@@ -28,7 +30,7 @@ public class ExampleGames : MonoBehaviour
 
     public ResourceModle ResouceModle;
 
-    async void Start()
+    void Start()
     {
         ResourceManager resourceManager = Runtime.GetGameModule<ResourceManager>();
         resourceManager.SetResourceModle(ResouceModle);
@@ -44,31 +46,20 @@ public class ExampleGames : MonoBehaviour
                 Debug.Log("update resource failur");
                 return;
             }
-            SimpleWorld simpleWorld = Runtime.GetGameModule<GameManager>().OpenWorld<SimpleWorld>();
+            SimpleWorld simpleWorld = Runtime.GetGameModule<WorldManager>().OpenWorld<SimpleWorld>();
             simpleWorld.AddScriptble<MovementScriptble>();
-            IEntity entity = simpleWorld.CreateEntity();
-            entity.AddComponent<GameObjectComponent>();
+            for (var i = 0; i < 1000000; i++)
+            {
+                IEntity entity = simpleWorld.CreateEntity();
+                entity.AddComponent<GameObjectComponent>();
+            }
         });
-
-        // await Task.Delay(5000);
-        // Runtime.GetGameModule<GameFramework.Game.GameManager>().CloseWorld<SimpleWorld>();
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-        Runtime.Update();
-    }
-
-    private void OnApplicationQuit()
-    {
-        Runtime.Shutdown();
     }
 }
 
 
 
-public sealed class SimpleWorld : GameWorld
+public sealed class SimpleWorld : AbstractGameWorld
 {
     public override string name => "SimpleWorld";
 
@@ -80,10 +71,5 @@ public sealed class SimpleWorld : GameWorld
     private void Test()
     {
         Debug.Log(name + " startboot");
-
-    }
-
-    public override void Update()
-    {
     }
 }

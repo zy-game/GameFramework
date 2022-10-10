@@ -8,7 +8,7 @@ namespace GameFramework.Game
     /// <summary>
     /// 游戏实体
     /// </summary>
-    public sealed class GameEntity : IEntity
+    public sealed class DefaultGameEntity : IEntity
     {
         private Dictionary<Type, IComponent> components;
 
@@ -24,7 +24,7 @@ namespace GameFramework.Game
         /// <value></value>
         public IGameWorld owner { get; private set; }
 
-        public GameEntity()
+        public DefaultGameEntity()
         {
             components = new Dictionary<Type, IComponent>();
         }
@@ -49,11 +49,7 @@ namespace GameFramework.Game
             }
             component = (IComponent)Loader.Generate(componentType);
             components.Add(componentType, component);
-            GameWorld gameWorld = (GameWorld)owner;
-            if (gameWorld != null)
-            {
-                gameWorld.INTERNAL_EntityComponentChange(this);
-            }
+            Context.INTERNAL_EntityComponentChange(this, components.Keys.ToArray());
             return component;
         }
 
@@ -101,9 +97,9 @@ namespace GameFramework.Game
             return components.Values.ToArray();
         }
 
-        internal static GameEntity Generate(string guid, IGameWorld game)
+        internal static DefaultGameEntity Generate(string guid, IGameWorld game)
         {
-            GameEntity entity = Loader.Generate<GameEntity>();
+            DefaultGameEntity entity = Loader.Generate<DefaultGameEntity>();
             entity.guid = guid;
             entity.owner = game;
             return entity;
@@ -166,12 +162,7 @@ namespace GameFramework.Game
             {
                 Loader.Release(component);
                 components.Remove(componentType);
-                GameWorld gameWorld = (GameWorld)owner;
-                if (gameWorld == null)
-                {
-                    return;
-                }
-                gameWorld.INTERNAL_EntityComponentChange(this);
+                Context.INTERNAL_EntityComponentChange(this, components.Keys.ToArray());
             }
         }
 
