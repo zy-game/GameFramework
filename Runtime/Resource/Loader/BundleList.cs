@@ -15,12 +15,37 @@ namespace GameFramework.Resource
         /// </summary>
         public List<BundleData> bundles;
 
+        public int Count
+        {
+            get
+            {
+                return bundles.Count;
+            }
+        }
+
+        public BundleData this[int index]
+        {
+            get
+            {
+                if (index < 0 || index >= bundles.Count)
+                {
+                    throw GameFrameworkException.Generate<IndexOutOfRangeException>();
+                }
+                return bundles[index];
+            }
+        }
+
         /// <summary>
         /// 资源列表构造函数
         /// </summary>
         public BundleList()
         {
             bundles = new List<BundleData>();
+        }
+
+        public List<BundleData> GetBundles()
+        {
+            return bundles;
         }
 
         /// <summary>
@@ -80,12 +105,29 @@ namespace GameFramework.Resource
 
         public override string ToString()
         {
-            return CatJson.JsonParser.ToJson(this);
+            return CatJson.JsonParser.ToJson(bundles);
         }
 
         public static BundleList Generate(string data)
         {
-            return CatJson.JsonParser.ParseJson<BundleList>(data);
+            BundleList bundle = Loader.Generate<BundleList>();
+            bundle.bundles = CatJson.JsonParser.ParseJson<List<BundleData>>(data);
+            return bundle;
+        }
+
+        public void AddRange(BundleList bundleList)
+        {
+            if (bundleList == null)
+            {
+                throw GameFrameworkException.Generate<NullReferenceException>();
+            }
+
+            bundles.AddRange(bundleList.bundles);
+        }
+
+        public void Clear()
+        {
+            bundles.Clear();
         }
     }
 
@@ -175,6 +217,7 @@ namespace GameFramework.Resource
         {
             if (HasAssetData(assetData.name))
             {
+                UnityEngine.Debug.Log("重复资源：" + assetData.path);
                 return;
             }
             assets.Add(assetData);

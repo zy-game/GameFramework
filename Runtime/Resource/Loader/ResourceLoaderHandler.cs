@@ -107,10 +107,10 @@ namespace GameFramework.Resource
             TextAsset resourceBundleListData = resourceStreamingHandler.ReadResourceDataSync<TextAsset>(Path.GetFileNameWithoutExtension(AppConfig.HOTFIX_FILE_LIST_NAME));
             if (resourceBundleListData != null)
             {
-                BundleList resourceBundleList = CatJson.JsonParser.ParseJson<BundleList>(resourceBundleListData.text);
-                if (resourceBundleList != null && resourceBundleList.bundles.Count > 0)
+                BundleList resourceBundleList = BundleList.Generate(resourceBundleListData.text);
+                if (resourceBundleList != null && resourceBundleList.Count > 0)
                 {
-                    bundleList.bundles.AddRange(resourceBundleList.bundles);
+                    bundleList.AddRange(resourceBundleList);
                 }
             }
             DataStream stream = this.resourceStreamingHandler.ReadPersistentDataSync(AppConfig.HOTFIX_FILE_LIST_NAME);
@@ -118,10 +118,10 @@ namespace GameFramework.Resource
             {
                 throw GameFrameworkException.Generate("read file error:" + AppConfig.HOTFIX_FILE_LIST_NAME);
             }
-            BundleList hotfixBundleList = CatJson.JsonParser.ParseJson<BundleList>(stream.ToString());
-            if (hotfixBundleList != null && hotfixBundleList.bundles.Count > 0)
+            BundleList hotfixBundleList = BundleList.Generate(stream.ToString());
+            if (hotfixBundleList != null && hotfixBundleList.Count > 0)
             {
-                bundleList.bundles.AddRange(hotfixBundleList.bundles);
+                bundleList.AddRange(hotfixBundleList);
             }
         }
 

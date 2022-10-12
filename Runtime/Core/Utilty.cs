@@ -124,5 +124,98 @@ namespace GameFramework
         {
             basic.gameObject.SetParent(parent.transform, position, rotation, scale);
         }
+
+
+        /// <summary>
+        /// 【秒级】获取时间（北京时间）
+        /// </summary>
+        /// <param name="timestamp">10位时间戳</param>
+        public static DateTime GetDateTimeSeconds(long timestamp)
+        {
+            long begtime = timestamp * 10000000;
+            DateTime dt_1970 = new DateTime(1970, 1, 1, 8, 0, 0);
+            long tricks_1970 = dt_1970.Ticks;//1970年1月1日刻度
+            long time_tricks = tricks_1970 + begtime;//日志日期刻度
+            DateTime dt = new DateTime(time_tricks);//转化为DateTime
+            return dt;
+        }
+        /// <summary>
+        /// 【秒级】生成10位时间戳（北京时间）
+        /// </summary>
+        /// <param name="dt">时间</param>
+        public static long GetTimeStampSeconds(DateTime dt)
+        {
+            DateTime dateStart = new DateTime(1970, 1, 1, 8, 0, 0);
+            return Convert.ToInt64((dt - dateStart).TotalSeconds);
+        }
+
+        /// <summary>
+        /// 【毫秒级】获取时间（北京时间）
+        /// </summary>
+        /// <param name="timestamp">10位时间戳</param>
+        public static DateTime GetDateTimeMilliseconds(long timestamp)
+        {
+            long begtime = timestamp * 10000;
+            DateTime dt_1970 = new DateTime(1970, 1, 1, 8, 0, 0);
+            long tricks_1970 = dt_1970.Ticks;//1970年1月1日刻度
+            long time_tricks = tricks_1970 + begtime;//日志日期刻度
+            DateTime dt = new DateTime(time_tricks);//转化为DateTime
+            return dt;
+        }
+        /// <summary>
+        /// 【毫秒级】生成13位时间戳（北京时间）
+        /// </summary>
+        /// <param name="dt">时间</param>
+        public static long GetTimeStampMilliseconds(DateTime dt)
+        {
+            DateTime dateStart = new DateTime(1970, 1, 1, 8, 0, 0);
+            return Convert.ToInt64((dt - dateStart).TotalMilliseconds);
+        }
+  
+        /// <summary>
+        /// 【秒级】获取时间（格林威治时间）
+        /// </summary>
+        /// <param name="timestamp">10位时间戳</param>
+        public static DateTime GetUnixDateTimeSeconds(long timestamp)
+        {
+            long begtime = timestamp * 10000000;
+            DateTime dt_1970 = new DateTime(1970, 1, 1, 0, 0, 0);
+            long tricks_1970 = dt_1970.Ticks;//1970年1月1日刻度
+            long time_tricks = tricks_1970 + begtime;//日志日期刻度
+            DateTime dt = new DateTime(time_tricks);//转化为DateTime
+            return dt;
+        }
+        /// <summary>
+        /// 【秒级】生成10位时间戳（格林威治时间）
+        /// </summary>
+        /// <param name="dt">时间</param>
+        public static long GetUnixTimeStampSeconds(DateTime dt)
+        {
+            DateTime dateStart = new DateTime(1970, 1, 1, 0, 0, 0);
+            return Convert.ToInt64((dt - dateStart).TotalSeconds);
+        }
+
+        /// <summary>
+        /// 【毫秒级】获取时间（格林威治时间）
+        /// </summary>
+        /// <param name="timestamp">10位时间戳</param>
+        public static DateTime GetUnixDateTimeMilliseconds(long timestamp)
+        {
+            long begtime = timestamp * 10000;
+            DateTime dt_1970 = new DateTime(1970, 1, 1, 0, 0, 0);
+            long tricks_1970 = dt_1970.Ticks;//1970年1月1日刻度
+            long time_tricks = tricks_1970 + begtime;//日志日期刻度
+            DateTime dt = new DateTime(time_tricks);//转化为DateTime
+            return dt;
+        }
+        /// <summary>
+        /// 【毫秒级】生成13位时间戳（格林威治时间）
+        /// </summary>
+        /// <param name="dt">时间</param>
+        public static long GetUnixTimeStampMilliseconds(DateTime dt)
+        {
+            DateTime dateStart = new DateTime(1970, 1, 1, 0, 0, 0);
+            return Convert.ToInt64((dt - dateStart).TotalMilliseconds);
+        }
     }
 }

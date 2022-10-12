@@ -22,6 +22,13 @@ namespace GameFramework.Datable
         IGameDatable CreateDatable(Type gameDatableType);
 
         /// <summary>
+        /// 生成游戏数据表
+        /// </summary>
+        /// <param name="gameDatableType">数据表类型</param>
+        /// <returns>游戏数据表</returns>
+        IGameDatable CreateDatable(IGameDatable gameDatable);
+
+        /// <summary>
         /// 是否存在游戏数据表
         /// </summary>
         /// <typeparam name="gameDatableType">数据表类型</typeparam>

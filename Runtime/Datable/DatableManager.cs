@@ -24,7 +24,34 @@ namespace GameFramework.Datable
         /// <returns>游戏数据表</returns>
         public IGameDatable CreateDatable(Type gameDatableType)
         {
-            return default;
+            if (gameDatableType == null)
+            {
+                throw GameFrameworkException.Generate<NullReferenceException>();
+            }
+            if (gameDatableType.IsAbstract || gameDatableType.IsInterface)
+            {
+                throw GameFrameworkException.Generate("datable type cannot be interface or abstract");
+            }
+            if (!typeof(IGameDatable).IsAssignableFrom(gameDatableType))
+            {
+                throw GameFrameworkException.Generate("the datable is not impart IGameDatable");
+            }
+            return CreateDatable((IGameDatable)Loader.Generate(gameDatableType));
+        }
+
+        /// <summary>
+        /// 生成游戏数据表
+        /// </summary>
+        /// <param name="gameDatableType">数据表类型</param>
+        /// <returns>游戏数据表</returns>
+        public IGameDatable CreateDatable(IGameDatable gameDatable)
+        {
+            if (datables.TryGetValue(gameDatable.guid, out IGameDatable _))
+            {
+                throw GameFrameworkException.Generate("the datable is already exist");
+            }
+            datables.Add(gameDatable.guid, gameDatable);
+            return gameDatable;
         }
 
         /// <summary>

@@ -38,10 +38,10 @@ namespace GameFramework.Resource
                 {
                     throw GameFrameworkException.GenerateFormat("not find file:{0}", Path.Combine(Application.streamingAssetsPath, AppConfig.HOTFIX_FILE_LIST_NAME));
                 }
-                streamingBundleList = CatJson.JsonParser.ParseJson<BundleList>(resourceDataStreaming.ToString());
+                streamingBundleList = BundleList.Generate(resourceDataStreaming.ToString());
                 Loader.Release(resourceDataStreaming);
             }
-            if (streamingBundleList == null || streamingBundleList.bundles.Count <= 0)
+            if (streamingBundleList == null || streamingBundleList.Count <= 0)
             {
                 this.resourceUpdateListenerHandler.Progres(1f);
                 this.resourceUpdateListenerHandler.Completed(ResourceUpdateState.Success);
@@ -52,20 +52,21 @@ namespace GameFramework.Resource
                 resourceDataStreaming = await resourceStreamingHandler.ReadPersistentDataAsync(AppConfig.HOTFIX_FILE_LIST_NAME);
                 if (resourceDataStreaming != null || resourceDataStreaming.position > 0)
                 {
-                    persistentBundleList = CatJson.JsonParser.ParseJson<BundleList>(resourceDataStreaming.ToString());
+                    persistentBundleList = BundleList.Generate(resourceDataStreaming.ToString());
                     Loader.Release(resourceDataStreaming);
                 }
             }
             List<BundleData> needUpdateList = new List<BundleData>();
-            if (persistentBundleList == null || persistentBundleList.bundles.Count <= 0)
+            if (persistentBundleList == null || persistentBundleList.Count <= 0)
             {
                 persistentBundleList = Loader.Generate<BundleList>();
-                needUpdateList.AddRange(streamingBundleList.bundles);
+                needUpdateList.AddRange(streamingBundleList.GetBundles());
             }
             else
             {
-                foreach (BundleData streamingBundleData in streamingBundleList.bundles)
+                for (int i = 0; i < streamingBundleList.Count; i++)
                 {
+                    BundleData streamingBundleData = streamingBundleList[i];
                     BundleData persistentBundleData = persistentBundleList.GetBundleData(streamingBundleData.name);
                     if (persistentBundleData == null || !streamingBundleData.Equals(persistentBundleData))
                     {
@@ -128,7 +129,7 @@ namespace GameFramework.Resource
         {
             this.resourceUpdateListenerHandler = resourceUpdateListenerHandler;
             NetworkManager networkManager = Runtime.GetGameModule<NetworkManager>();
-            BundleList hotfixBundleList = networkManager.Request<BundleList>(Path.Combine(url, AppConfig.HOTFIX_FILE_LIST_NAME));
+            BundleList hotfixBundleList = BundleList.Generate(networkManager.Request(Path.Combine(url, AppConfig.HOTFIX_FILE_LIST_NAME)));
             if (hotfixBundleList == null)
             {
                 throw GameFrameworkException.GenerateFormat("remote server is not find file:" + Path.Combine(url, AppConfig.HOTFIX_FILE_LIST_NAME));
@@ -137,18 +138,19 @@ namespace GameFramework.Resource
             BundleList persistentBundleList = null;
             if (resourceDataStreaming != null && resourceDataStreaming.position > 0)
             {
-                persistentBundleList = CatJson.JsonParser.ParseJson<BundleList>(resourceDataStreaming.ToString());
+                persistentBundleList = BundleList.Generate(resourceDataStreaming.ToString());
             }
             List<BundleData> needUpdateList = new List<BundleData>();
-            if (persistentBundleList == null || persistentBundleList.bundles.Count <= 0)
+            if (persistentBundleList == null || persistentBundleList.Count <= 0)
             {
                 persistentBundleList = Loader.Generate<BundleList>();
-                needUpdateList.AddRange(hotfixBundleList.bundles);
+                needUpdateList.AddRange(hotfixBundleList.GetBundles());
             }
             else
             {
-                foreach (BundleData streamingBundleData in hotfixBundleList.bundles)
+                for (int i = 0; i < hotfixBundleList.Count; i++)
                 {
+                    BundleData streamingBundleData = hotfixBundleList[i];
                     BundleData persistentBundleData = persistentBundleList.GetBundleData(streamingBundleData.name);
                     if (persistentBundleData == null || !streamingBundleData.Equals(persistentBundleData))
                     {
