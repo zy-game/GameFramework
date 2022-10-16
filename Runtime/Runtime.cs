@@ -13,6 +13,69 @@ namespace GameFramework
     {
         public static string HOTFIX_FILE_LIST_NAME = "fileList.ini";
         public static uint MaxResourceBundleCacheCount = 10;
+
+        public static string BUNDLE_EXTENSION
+        {
+            get
+            {
+                return ".data";
+            }
+        }
+        public static string HOTFIX_FILE_PATH
+        {
+            get
+            {
+#if UNITY_EDITOR
+                return Application.dataPath + "/../hotfix/files/";
+#else
+                return Application.persistentDataPath + "/files/";
+#endif
+            }
+        }
+
+        public static string HOTFIX_DATA_PATH
+        {
+            get
+            {
+#if UNITY_EDITOR
+                return Application.dataPath + "/../hotfix/datas/";
+#else
+                return Application.persistentDataPath + "/datas/";
+#endif
+            }
+        }
+
+        public static string STREAMING_FILE_PATH
+        {
+            get
+            {
+                return Application.streamingAssetsPath + "/files/";
+            }
+        }
+
+        public static string STREAMING_DATA_PATH
+        {
+            get
+            {
+                return Application.streamingAssetsPath + "/datas/";
+            }
+        }
+
+        public static string PACKAGED_FILE_PATH
+        {
+            get
+            {
+                return Application.dataPath + "/Resources/files/";
+            }
+        }
+
+        public static string PACKAGED_DATA_PATH
+        {
+            get
+            {
+                return Application.dataPath + "/Resources/datas/";
+            }
+        }
     }
     /// <summary>
     /// 游戏运行时
@@ -82,7 +145,7 @@ namespace GameFramework
         public static IGameModule GetGameModule(Type type)
         {
             type.EnsureObjectRefrenceType<IGameModule>();
-            IGameModule module = modules.AsParallel().Where(x => x.GetType() == type).FirstOrDefault();
+            IGameModule module = modules.Find(x => x.GetType() == type);
             if (module == null)
             {
                 module = (IGameModule)Loader.Generate(type);

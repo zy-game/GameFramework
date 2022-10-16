@@ -11,27 +11,45 @@ using System;
 using Object = UnityEngine.Object;
 using UnityEngine.UIElements;
 using static UnityEngine.Rendering.VirtualTexturing.Debugging;
+using UnityEditorInternal;
+using System.Linq;
+using static PlasticGui.LaunchDiffParameters;
+using NUnit.Framework;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Header;
+using UnityEditor.VersionControl;
+using UnityEngine.Assertions;
+using static UnityEditor.ShaderData;
 
+namespace GameFramework.Editor
+{
+    public sealed class GameEditorStyle
+    {
+        public static readonly string draggingHandle = "RL DragHandle";
+        public static readonly string headerBackground = "RL Header";
+        public static readonly string emptyHeaderBackground = "RL Empty Header";
+        public static readonly string footerBackground = "RL Footer";
+        public static readonly string boxBackground = "RL Background";
+        public static readonly string preButton = "RL FooterButton";
+        public static readonly string elementBackground = "RL Element";
+        public static readonly string selectionItem = "SelectionRect";
+        public static readonly GUIContent iconToolbarPlus = EditorGUIUtility.TrIconContent("Toolbar Plus", "Add to the list");
+        public static readonly GUIContent iconToolbarPlusMore = EditorGUIUtility.TrIconContent("Toolbar Plus More", "Choose to add to the list");
+        public static readonly GUIContent iconToolbarMinus = EditorGUIUtility.TrIconContent("Toolbar Minus", "Remove selection from the list");
+        public static readonly GUIContent s_ListIsEmpty = EditorGUIUtility.TrTextContent("List is Empty");
+    }
+}
 namespace GameFramework.Editor.ResoueceEditor
 {
-
-    public class GUIList<T>
-    {
-        public void OnGui()
-        {
-
-        }
-    }
     public class ResourceGenerateEditorScript : EditorWindow
     {
-        ResourceBundleBuilder resourceBundleBuilder;
-        HotfixBundleBuilder hotfixResourceBundleBuilder;
-        StreamingBundleBuilder streamingResourceBundleBuilder;
+        static BundleBuilder resourceBundleBuilder;
+        static BundleBuilder hotfixResourceBundleBuilder;
+        static BundleBuilder streamingResourceBundleBuilder;
 
 
         private void OnEnable()
         {
-            resourceBundleBuilder = new ResourceBundleBuilder();
+            resourceBundleBuilder = new BundleBuilder(BundleType.ResourcesAssets, this);
             resourceBundleBuilder.showCallback += state =>
             {
                 if (!state)
@@ -41,7 +59,7 @@ namespace GameFramework.Editor.ResoueceEditor
                 hotfixResourceBundleBuilder.active = !state;
                 streamingResourceBundleBuilder.active = !state;
             };
-            hotfixResourceBundleBuilder = new HotfixBundleBuilder();
+            hotfixResourceBundleBuilder = new BundleBuilder(BundleType.HotfixAssets, this);
             hotfixResourceBundleBuilder.showCallback += state =>
             {
                 if (!state)
@@ -51,7 +69,7 @@ namespace GameFramework.Editor.ResoueceEditor
                 resourceBundleBuilder.active = !state;
                 streamingResourceBundleBuilder.active = !state;
             };
-            streamingResourceBundleBuilder = new StreamingBundleBuilder();
+            streamingResourceBundleBuilder = new BundleBuilder(BundleType.StreamingAssets, this);
             streamingResourceBundleBuilder.showCallback += state =>
             {
                 if (!state)
@@ -66,45 +84,255 @@ namespace GameFramework.Editor.ResoueceEditor
 
         private void OnGUI()
         {
-
-            resourceBundleBuilder.OnGui();
-            hotfixResourceBundleBuilder.OnGui();
-            streamingResourceBundleBuilder.OnGui();
+            if (Event.current.type == EventType.DragUpdated)
+            {
+                DragAndDrop.visualMode = DragAndDropVisualMode.Link;
+            }
+            resourceBundleBuilder.OnGUI(position);
+            hotfixResourceBundleBuilder.OnGUI(position);
+            streamingResourceBundleBuilder.OnGUI(position);
+        }
+        private static bool IsHaveAssetData(string assetNamme)
+        {
+            return resourceBundleBuilder.ContainsAsset(assetNamme) || hotfixResourceBundleBuilder.ContainsAsset(assetNamme) || streamingResourceBundleBuilder.ContainsAsset(assetNamme);
         }
 
+        private static bool IsHaveBundleData(string bundleName)
+        {
+            return resourceBundleBuilder.ContainsBundle(bundleName) || hotfixResourceBundleBuilder.ContainsBundle(bundleName) || streamingResourceBundleBuilder.ContainsBundle(bundleName);
+        }
         public interface IBundleBuilder : IRefrence
         {
-            string name { get; }
             bool active { get; set; }
             event GameFrameworkAction<bool> showCallback;
-            void OnGui();
+            void OnGUI(Rect position);
+            bool ContainsBundle(string name);
+            bool ContainsAsset(string name);
         }
 
-        abstract class AbstractBundleBuilder : IBundleBuilder
+        public enum BundleType
         {
-            private Vector2 position;
-            public abstract string name { get; }
-            public bool active { get; set; }
+            HotfixAssets,
+            StreamingAssets,
+            ResourcesAssets,
+        }
+        class BundleListGUI
+        {
+            private static AssetData seletion;
 
-            public event GameFrameworkAction<bool> showCallback;
-
-            private bool apkBundle;
-            protected BundleList bundle;
-            protected string dicRoot = Application.streamingAssetsPath;
-            protected Dictionary<string, bool> foldouts = new Dictionary<string, bool>();
-
-            public AbstractBundleBuilder(bool isApk)
+            private BundleList bundleList;
+            private Dictionary<string, Object> objectList;
+            public BundleListGUI(BundleList bundleList)
             {
-                apkBundle = isApk;
+                this.bundleList = bundleList;
+                objectList = new Dictionary<string, Object>();
             }
 
-            public void OnGui()
+            public void OnGUI(EditorWindow window)
+            {
+                Rect backgroundRect = EditorGUILayout.BeginVertical();
+                {
+                    GUILayout.Space(5);
+                    if (bundleList.Count <= 0)
+                    {
+                        GUILayout.Label(GameEditorStyle.s_ListIsEmpty);
+                    }
+                    else
+                    {
+
+                        for (int i = 0; i < bundleList.Count; i++)
+                        {
+                            GUILayout.BeginHorizontal(GameEditorStyle.headerBackground, GUILayout.Height(20));
+                            {
+                                GUILayout.FlexibleSpace();
+                                GUILayout.Space(100);
+                                GUILayout.EndHorizontal();
+                            }
+                            GUILayout.Space(-20);
+                            GUILayout.Label(bundleList[i].name);
+                            Rect rect = EditorGUILayout.BeginVertical(GameEditorStyle.boxBackground);
+                            {
+                                DrawBundleDataListGUI(bundleList[i], window);
+                                if (Event.current.type == EventType.DragPerform && rect.Contains(Event.current.mousePosition))
+                                {
+                                    DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
+                                    foreach (var item in DragAndDrop.paths)
+                                    {
+                                        GetFileList(item, bundleList[i]);
+                                    }
+                                    DragAndDrop.AcceptDrag();
+                                    Event.current.Use();
+                                    window.Repaint();
+                                }
+                                EditorGUILayout.EndVertical();
+                            }
+                            DrawBottomButtonGUI(bundleList[i], window);
+                        }
+                    }
+                    if (Event.current.type == EventType.DragPerform && backgroundRect.Contains(Event.current.mousePosition))
+                    {
+                        DragAndDrop.visualMode = DragAndDropVisualMode.Generic;
+
+                        foreach (var item in DragAndDrop.paths)
+                        {
+                            if (Path.HasExtension(item))
+                            {
+                                continue;
+                            }
+                            string fileName = Path.GetFileName(item);
+                            if (IsHaveBundleData(fileName))
+                            {
+                                Debug.LogErrorFormat("重复资源包：", fileName);
+                                continue;
+                            }
+                            BundleData bundleData = new BundleData() { name = fileName };
+                            GetFileList(item, bundleData);
+                            bundleList.Add(bundleData);
+                        }
+                        DragAndDrop.AcceptDrag();
+                        Event.current.Use();
+                        window.Repaint();
+                    }
+                    EditorGUILayout.EndVertical();
+                }
+            }
+
+            private void DrawBottomButtonGUI(BundleData bundleData, EditorWindow window)
+            {
+                GUILayout.Space(-1);
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Box("", GameEditorStyle.boxBackground, GUILayout.Width(60), GUILayout.Height(20));
+                    GUILayout.Space(-50);
+                    if (GUILayout.Button(GameEditorStyle.iconToolbarPlus, GameEditorStyle.preButton))
+                    {
+
+                    }
+                    GUILayout.Space(10);
+                    if (GUILayout.Button(GameEditorStyle.iconToolbarMinus, GameEditorStyle.preButton))
+                    {
+                        if (seletion != null)
+                        {
+                            bundleData.Remove(seletion.name);
+                        }
+                        else
+                        {
+                            AssetData last = bundleData.Last();
+                            if (last != null)
+                            {
+                                bundleData.Remove(last.name);
+                            }
+                        }
+                    }
+                    GUILayout.Space(30);
+                    GUILayout.EndHorizontal();
+                }
+            }
+
+            private void DrawBundleDataListGUI(BundleData bundleData, EditorWindow window)
+            {
+                for (int i = 0; i < bundleData.Count; i++)
+                {
+                    Rect rect = EditorGUILayout.BeginHorizontal(seletion != null && bundleData.Contains(seletion) ? GameEditorStyle.selectionItem : GUIStyle.none);
+                    {
+                        GUILayout.Space(5);
+                        GUILayout.Label(bundleData[i].name);
+                        GUILayout.Label(bundleData[i].path);
+                        if (!objectList.TryGetValue(bundleData[i].name, out Object assetObject))
+                        {
+                            assetObject = AssetDatabase.LoadAssetAtPath(AssetDatabase.GUIDToAssetPath(bundleData[i].guid), typeof(Object));
+                            objectList.Add(bundleData[i].name, assetObject);
+                        }
+                        objectList[bundleData[i].name] = EditorGUILayout.ObjectField("", assetObject, typeof(Object), false);
+                        GUILayout.Space(5);
+                        if (Event.current.type == EventType.MouseDown)
+                        {
+                            if (rect.Contains(Event.current.mousePosition))
+                            {
+                                seletion = bundleData[i];
+                                window.Repaint();
+                            }
+                        }
+                        EditorGUILayout.EndHorizontal();
+                    }
+                }
+            }
+
+            public void GetFileList(string path, BundleData bundle)
+            {
+                if (Path.HasExtension(path))
+                {
+                    if (path.EndsWith(".meta") || path.EndsWith(".cs"))
+                    {
+                        return;
+                    }
+                    if (!path.StartsWith("Assets"))
+                    {
+                        path = path.Replace(Application.dataPath, "Assets");
+                    }
+                    string assetName = Path.GetFileNameWithoutExtension(path);
+                    if (IsHaveAssetData(assetName))
+                    {
+                        Debug.LogErrorFormat("存在重复资源：{0}", assetName);
+                        return;
+                    }
+                    bundle.Add(new AssetData()
+                    {
+                        name = assetName,
+                        guid = AssetDatabase.AssetPathToGUID(path),
+                        path = path.Replace("\\", "/")
+                    });
+                    return;
+                }
+                if (string.IsNullOrEmpty(path))
+                {
+                    return;
+                }
+                path = Application.dataPath.Replace("Assets", "") + path;
+                Debug.Log(path);
+                string[] files = Directory.GetFiles(path, "*.*", SearchOption.AllDirectories);
+                foreach (string file in files)
+                {
+                    GetFileList(file, bundle);
+                }
+            }
+        }
+
+        class BundleBuilder : IBundleBuilder
+        {
+            private BundleList bundle;
+            private Vector2 _position;
+            private EditorWindow window;
+            private BundleType bundleType;
+            private BundleListGUI bundleListGUI;
+            public event GameFrameworkAction<bool> showCallback;
+            public bool active { get; set; }
+            public BundleBuilder(BundleType bundleType, EditorWindow window)
+            {
+                this.window = window;
+                this.bundleType = bundleType;
+                string bundleListFilePath = GetBundleListPath();
+                string dire = Path.GetDirectoryName(bundleListFilePath);
+                if (!Directory.Exists(dire))
+                {
+                    Directory.CreateDirectory(dire);
+                }
+                string bundleListData = string.Empty;
+                if (File.Exists(bundleListFilePath))
+                {
+                    bundleListData = File.ReadAllText(bundleListFilePath);
+                }
+                bundle = string.IsNullOrEmpty(bundleListData) ? new BundleList() : BundleList.Generate(bundleListData);
+                bundleListGUI = new BundleListGUI(bundle);
+            }
+            public void OnGUI(Rect position)
             {
                 Rect rect = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                 {
                     GUILayout.BeginHorizontal(EditorStyles.toolbar);
                     {
-                        active = EditorGUILayout.Foldout(active, name);
+                        active = EditorGUILayout.Foldout(active, bundleType.ToString());
                         if (GUI.changed)
                         {
                             showCallback?.Invoke(active);
@@ -126,28 +354,10 @@ namespace GameFramework.Editor.ResoueceEditor
                     }
                     if (active)
                     {
-                        position = GUILayout.BeginScrollView(position);
+                        _position = GUILayout.BeginScrollView(_position, false, true);
                         {
-                            OnGUI();
+                            bundleListGUI.OnGUI(this.window);
                             GUILayout.EndScrollView();
-                        }
-
-                        if (Event.current.type == EventType.DragUpdated && rect.Contains(Event.current.mousePosition))
-                        {
-                            DragAndDrop.visualMode = DragAndDropVisualMode.Link;
-                        }
-                        if (Event.current.type == EventType.DragPerform && rect.Contains(Event.current.mousePosition))
-                        {
-                            for (int i = 0; i < DragAndDrop.paths.Length; i++)
-                            {
-                                if (Path.HasExtension(DragAndDrop.paths[i]))
-                                {
-                                    continue;
-                                }
-                                AddPackage(DragAndDrop.paths[i]);
-                            }
-                            DragAndDrop.AcceptDrag();
-                            Event.current.Use();
                         }
                     }
                     EditorGUILayout.EndVertical();
@@ -160,216 +370,106 @@ namespace GameFramework.Editor.ResoueceEditor
 
             protected virtual void Save()
             {
+                string savePath = GetBundleListPath();
+                if (File.Exists(Path.Combine(savePath)))
+                {
+                    File.Delete(savePath);
+                }
+                string dire = Path.GetDirectoryName(savePath);
+                if (!Directory.Exists(dire))
+                {
+                    Directory.CreateDirectory(dire);
+                }
+                File.WriteAllText(savePath, bundle.ToString());
+                AssetDatabase.Refresh();
+            }
 
+            private string GetBundleListPath()
+            {
+                string filePath = string.Empty;
+                if (bundleType == BundleType.HotfixAssets)
+                {
+                    filePath = AppConfig.HOTFIX_FILE_PATH + AppConfig.HOTFIX_FILE_LIST_NAME;
+                }
+                if (bundleType == BundleType.StreamingAssets)
+                {
+                    filePath = AppConfig.STREAMING_FILE_PATH + AppConfig.HOTFIX_FILE_LIST_NAME;
+                }
+                if (bundleType == BundleType.ResourcesAssets)
+                {
+                    filePath = AppConfig.PACKAGED_FILE_PATH + AppConfig.HOTFIX_FILE_LIST_NAME;
+                }
+                return filePath;
             }
 
             protected virtual void Build()
             {
+                string outputPath = string.Empty;
+                switch (bundleType)
+                {
+                    case BundleType.StreamingAssets:
+                    case BundleType.HotfixAssets:
+                        outputPath = bundleType == BundleType.HotfixAssets ? AppConfig.HOTFIX_FILE_PATH : AppConfig.STREAMING_FILE_PATH;
+                        AssetBundleBuild[] bundleBuilds = new AssetBundleBuild[bundle.Count];
+                        for (int i = 0; i < bundle.Count; i++)
+                        {
+                            bundleBuilds[i] = new AssetBundleBuild();
+                            bundleBuilds[i].assetBundleName = bundle[i].name + AppConfig.BUNDLE_EXTENSION;
+                            bundleBuilds[i].assetNames = bundle[i].Paths;
+                        }
+
+                        BuildPipeline.BuildAssetBundles(outputPath, bundleBuilds, BuildAssetBundleOptions.None,
+#if UNITY_ANDROID
+                        BuildTarget.Android
+#elif UNITY_IPHONE
+                        BuildTarget.iOS
+#else
+                        BuildTarget.StandaloneWindows
+#endif
+                            );
+                        break;
+                    case BundleType.ResourcesAssets:
+
+                        break;
+                }
+
+                string maniBundle = Path.Combine(outputPath, Utilty.GetLastDirectory(outputPath));
+                string maniBundleMeta = Path.Combine(outputPath, Utilty.GetLastDirectory(outputPath) + ".meta");
+                string manifest = Path.Combine(outputPath, Utilty.GetLastDirectory(outputPath) + ".manifest");
+                string manifestmeta = Path.Combine(outputPath, Utilty.GetLastDirectory(outputPath) + ".manifest.meta");
+                if (File.Exists(manifest))
+                {
+                    File.Delete(manifest);
+                }
+                if (File.Exists(manifestmeta))
+                {
+                    File.Delete(manifestmeta);
+                }
+
+                if (File.Exists(maniBundle))
+                {
+                    File.Delete(maniBundle);
+                }
+                if (File.Exists(maniBundleMeta))
+                {
+                    File.Delete(maniBundleMeta);
+                }
+                AssetDatabase.Refresh();
             }
 
             protected virtual void Clear()
             {
-            }
-
-
-            protected void OnGUI()
-            {
-                for (int i = bundle.Count - 1; i >= 0; i--)
-                {
-                    BundleData bundleData = bundle[i];
-                    Rect rect = EditorGUILayout.BeginVertical(EditorStyles.helpBox);
-                    {
-                        if (!foldouts.TryGetValue(bundleData.name, out bool state))
-                        {
-                            foldouts.Add(bundleData.name, false);
-                        }
-                        foldouts[bundleData.name] = EditorGUILayout.Foldout(state, bundleData.name);
-                        if (foldouts[bundleData.name])
-                        {
-                            foreach (AssetData item in bundleData.assets)
-                            {
-                                Rect itemRect = EditorGUILayout.BeginHorizontal();
-                                {
-                                    GUILayout.Label(item.name, GUILayout.Width(200));
-                                    GUILayout.Label(item.path, GUILayout.Width(400));
-                                    EditorGUILayout.EndHorizontal();
-                                }
-                            }
-                        }
-                        if (Event.current.type == EventType.DragPerform && rect.Contains(Event.current.mousePosition))
-                        {
-                            foreach (string seletionPath in DragAndDrop.paths)
-                            {
-                                if (!Path.HasExtension(seletionPath))
-                                {
-                                    continue;
-                                }
-                                AssetData assetData = Loader.Generate<AssetData>();
-                                assetData.path = seletionPath;
-                                assetData.name = Path.GetFileNameWithoutExtension(seletionPath);
-                                assetData.guid = AssetDatabase.AssetPathToGUID(seletionPath);
-                                bundleData.Add(assetData);
-                            }
-                            Event.current.Use();
-                        }
-
-                        EditorGUILayout.EndVertical();
-                    }
-                }
-            }
-            protected void AddPackage(string path)
-            {
-                BundleData bundleData = Loader.Generate<BundleData>();
-                DirectoryInfo directory = new DirectoryInfo(path);
-                bundleData.name = directory.Name;
-                bundleData.IsApk = apkBundle;
-                bundleData.owner = SystemInfo.deviceName;
-                bundleData.time = Utilty.GetTimeStampSeconds(DateTime.Now);
-                bundleData.version = 0;
-                bundleData.crc32 = 0;
-                bundle.Add(bundleData);
-            }
-
-            protected void RemovePackage(string name)
-            {
-                bundle.Remove(name);
-            }
-        }
-
-        sealed class ResourceBundleBuilder : AbstractBundleBuilder
-        {
-            public override string name => "ResourceBundle";
-            public ResourceBundleBuilder() : base(true)
-            {
-                dicRoot = Application.dataPath + "/Resources";
-                TextAsset text = Resources.Load<TextAsset>(AppConfig.HOTFIX_FILE_LIST_NAME);
-                if (text == null)
-                {
-                    bundle = new BundleList();
-                    return;
-                }
-                bundle = BundleList.Generate(text.text);
-            }
-            protected override void Save()
-            {
-                if (!Directory.Exists(dicRoot))
-                {
-                    Directory.CreateDirectory(dicRoot);
-                }
-                string data = bundle.ToString();
-                File.WriteAllText(Path.Combine(dicRoot, AppConfig.HOTFIX_FILE_LIST_NAME + ".txt"), data);
-                AssetDatabase.Refresh();
-            }
-
-
-
-            protected override void Build()
-            {
-                //todo 将资源不在resource文件夹的拷贝到resource文件夹中
-                for (int i = bundle.Count - 1; i >= 0; i--)
-                {
-                    BundleData bundleData = bundle[i];
-                    foreach (AssetData item in bundleData.assets)
-                    {
-
-                        string extension = Path.GetExtension(item.path);
-                        string targetPath = "Assets/Resources/";
-                        targetPath += extension switch
-                        {
-                            ".prefab" => "Prefab/" + Path.GetFileName(item.path),
-                            ".mp3" => "Sound/" + Path.GetFileName(item.path),
-                            ".wav" => "Sound/" + Path.GetFileName(item.path),
-                            ".png" => "Texture/" + Path.GetFileName(item.path),
-                            ".jpg" => "Texture/" + Path.GetFileName(item.path),
-                            ".ttf" => "Font/" + Path.GetFileName(item.path),
-                            ".mat" => "Material/" + Path.GetFileName(item.path),
-                            _ => throw GameFrameworkException.Generate(""),
-                        };
-                        DirectoryInfo directory = new DirectoryInfo(Path.GetDirectoryName(targetPath));
-                        if (!Directory.Exists(Application.dataPath + "/Resources/" + directory.Name))
-                        {
-                            AssetDatabase.CreateFolder("Assets/Resources", directory.Name);
-                        }
-                        if (!AssetDatabase.CopyAsset(item.path, targetPath))
-                        {
-                            //todo 拷贝失败，说明目标路径可能存在相同的资源名
-                            Debug.Log("拷贝失败，说明目标路径可能存在相同的资源名:" + targetPath);
-                        }
-                    }
-                }
-                AssetDatabase.Refresh();
-            }
-
-            protected override void Clear()
-            {
                 bundle.Clear();
             }
-        }
 
-        sealed class StreamingBundleBuilder : AbstractBundleBuilder
-        {
-            public override string name => "StreamingBundle";
-
-            public StreamingBundleBuilder() : base(false)
+            public bool ContainsBundle(string name)
             {
-                dicRoot = Application.streamingAssetsPath;
-                string path = Path.Combine(dicRoot, AppConfig.HOTFIX_FILE_LIST_NAME);
-                if (!File.Exists(path))
-                {
-                    bundle = new BundleList();
-                    return;
-                }
-                string text = File.ReadAllText(path);
-                if (string.IsNullOrEmpty(text))
-                {
-                    bundle = new BundleList();
-                    return;
-                }
-                bundle = BundleList.Generate(text);
+                return bundle.Contains(name);
             }
 
-            protected override void Save()
+            public bool ContainsAsset(string name)
             {
-                if (!Directory.Exists(dicRoot))
-                {
-                    Directory.CreateDirectory(dicRoot);
-                }
-                string data = bundle.ToString();
-                File.WriteAllText(Path.Combine(dicRoot, AppConfig.HOTFIX_FILE_LIST_NAME), data);
-                AssetDatabase.Refresh();
-            }
-        }
-
-        sealed class HotfixBundleBuilder : AbstractBundleBuilder
-        {
-            public override string name => "HotfixBundle";
-            public HotfixBundleBuilder() : base(false)
-            {
-                dicRoot = Application.dataPath + "/../hotfix";
-                string path = Path.Combine(dicRoot, AppConfig.HOTFIX_FILE_LIST_NAME);
-                if (!File.Exists(path))
-                {
-                    bundle = new BundleList();
-                    return;
-                }
-                string text = File.ReadAllText(path);
-                if (string.IsNullOrEmpty(text))
-                {
-                    bundle = new BundleList();
-                    return;
-                }
-                bundle = BundleList.Generate(text);
-            }
-
-            protected override void Save()
-            {
-                if (!Directory.Exists(dicRoot))
-                {
-                    Directory.CreateDirectory(dicRoot);
-                }
-                string data = bundle.ToString();
-                File.WriteAllText(Path.Combine(dicRoot, AppConfig.HOTFIX_FILE_LIST_NAME), data);
-                AssetDatabase.Refresh();
+                return bundle.GetBundleDataWithAsset(name) != null;
             }
         }
     }

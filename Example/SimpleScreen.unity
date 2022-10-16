@@ -226,7 +226,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6056d23cc0dd8634ab46364178358f3e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  ResouceModle: 0
 --- !u!114 &1045519950
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -484,6 +483,10 @@ PrefabInstance:
     - target: {fileID: 8199181603272231329, guid: be3d0fc40750c224b86e337e8ae973bb, type: 3}
       propertyPath: m_Name
       value: Message
+      objectReference: {fileID: 0}
+    - target: {fileID: 8199181603272231329, guid: be3d0fc40750c224b86e337e8ae973bb, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: be3d0fc40750c224b86e337e8ae973bb, type: 3}

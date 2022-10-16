@@ -7,12 +7,12 @@ namespace GameFramework.Events
     /// </summary>
     public sealed class EventManager : IEventManager
     {
-        private Queue<EventUnit> eventUnits;
+        private Queue<EventData> eventUnits;
         private List<SubscribeData> subscribes;
 
         public EventManager()
         {
-            eventUnits = new Queue<EventUnit>();
+            eventUnits = new Queue<EventData>();
             subscribes = new List<SubscribeData>();
         }
 
@@ -89,7 +89,7 @@ namespace GameFramework.Events
         /// <param name="eventId">事件ID</param>
         public void Executed(string eventId)
         {
-            eventUnits.Enqueue(new EventUnit(eventId, null));
+            eventUnits.Enqueue(EventData.Generate(eventId, null));
         }
 
         /// <summary>
@@ -100,7 +100,7 @@ namespace GameFramework.Events
         /// <typeparam name="T">事件参数类型</typeparam>
         public void Executed<T>(string eventId, T eventData)
         {
-            eventUnits.Enqueue(new EventUnit(eventId, eventData));
+            eventUnits.Enqueue(EventData.Generate(eventId, eventData));
         }
 
         /// <summary>
@@ -110,7 +110,7 @@ namespace GameFramework.Events
         /// <param name="eventData">事件参数</param>
         public void Executed(string eventId, IEventData eventData)
         {
-            eventUnits.Enqueue(new EventUnit(eventId, eventData));
+            eventUnits.Enqueue(EventData.Generate(eventId, eventData));
         }
 
         /// <summary>
@@ -229,7 +229,7 @@ namespace GameFramework.Events
         /// </summary>
         public void Update()
         {
-            while (eventUnits.TryDequeue(out EventUnit eventUnit))
+            while (eventUnits.TryDequeue(out EventData eventUnit))
             {
                 SubscribeData subscribeData = GetSubscribeData(eventUnit.eventId);
                 if (subscribeData == null)

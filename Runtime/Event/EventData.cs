@@ -5,7 +5,7 @@ namespace GameFramework.Events
     /// <summary>
     /// 事件数据
     /// </summary>
-    sealed class EventUnit : IRefrence
+    public sealed class EventData : IRefrence
     {
         public string eventId { get; private set; }
         public object eventData { get; private set; }
@@ -15,10 +15,12 @@ namespace GameFramework.Events
         /// </summary>
         /// <param name="id"></param>
         /// <param name="data"></param>
-        public EventUnit(string id, object data)
+        public static EventData Generate(string id, object data)
         {
-            eventId = id;
-            eventData = data;
+            EventData eventUnit = Loader.Generate<EventData>();
+            eventUnit.eventId = id;
+            eventUnit.eventData = data;
+            return eventUnit;
         }
 
         /// <summary>

@@ -8,6 +8,7 @@ namespace GameFramework.Resource
     /// <summary>
     /// 资源列表
     /// </summary>
+    [Serializable]
     public sealed class BundleList : IRefrence
     {
         /// <summary>
@@ -65,9 +66,11 @@ namespace GameFramework.Resource
             BundleData bundleData = GetBundleData(name);
             if (bundleData == null)
             {
+                UnityEngine.Debug.Log("not find bundle data:" + name);
                 return;
             }
             bundles.Remove(bundleData);
+            UnityEngine.Debug.Log("remove bundle data:" + bundleData.name);
         }
 
         /// <summary>
@@ -78,9 +81,10 @@ namespace GameFramework.Resource
         {
             if (GetBundleData(bundleData.name) != null)
             {
-                throw GameFrameworkException.Generate("the bundle is already exsit");
+                Remove(bundleData.name);
             }
             bundles.Add(bundleData);
+            UnityEngine.Debug.Log("add bundle data:" + bundleData.name);
         }
 
         /// <summary>
@@ -90,7 +94,7 @@ namespace GameFramework.Resource
         /// <returns></returns>
         public BundleData GetBundleData(string name)
         {
-            return bundles.AsParallel().Where(x => x.name.ToLower() == name.ToLower()).FirstOrDefault();
+            return bundles.Find(x => x.name.ToLower() == name.ToLower());
         }
 
         /// <summary>
@@ -105,13 +109,17 @@ namespace GameFramework.Resource
 
         public override string ToString()
         {
-            return CatJson.JsonParser.ToJson(bundles);
+            return CatJson.JsonParser.ToJson(this);
         }
 
         public static BundleList Generate(string data)
         {
-            BundleList bundle = Loader.Generate<BundleList>();
-            bundle.bundles = CatJson.JsonParser.ParseJson<List<BundleData>>(data);
+            if (string.IsNullOrEmpty(data))
+            {
+                return default;
+            }
+            BundleList bundle = CatJson.JsonParser.ParseJson<BundleList>(data); //Loader.Generate<BundleList>();
+            //bundle.bundles = CatJson.JsonParser.ParseJson<List<BundleData>>(data);
             return bundle;
         }
 
@@ -129,22 +137,37 @@ namespace GameFramework.Resource
         {
             bundles.Clear();
         }
+
+        public BundleData Last()
+        {
+            return bundles.LastOrDefault();
+        }
+
+        public BundleData First()
+        {
+            return bundles.FirstOrDefault();
+        }
+        public bool Contains(string name)
+        {
+            return bundles.Find(x => x.name == name) != null;
+        }
+
+        public bool Contains(BundleData bundle)
+        {
+            return bundles.Contains(bundle);
+        }
     }
 
     /// <summary>
     /// 资源列表
     /// </summary>
+    [Serializable]
     public sealed class BundleData : IRefrence
     {
         /// <summary>
         /// 包名
         /// </summary>
         public string name;
-
-        /// <summary>
-        /// 特征码
-        /// </summary>
-        public uint crc32;
 
         /// <summary>
         /// 资源版本
@@ -170,6 +193,39 @@ namespace GameFramework.Resource
         /// 资源列表
         /// </summary>
         public List<AssetData> assets;
+
+        public AssetData this[int index]
+        {
+            get
+            {
+                if (index < 0 || index >= assets.Count)
+                {
+                    throw GameFrameworkException.Generate<IndexOutOfRangeException>();
+                }
+                return assets[index];
+            }
+        }
+
+        public int Count
+        {
+            get
+            {
+                return assets.Count;
+            }
+        }
+
+        public string[] Paths
+        {
+            get
+            {
+                string[] paths = new string[Count];
+                for (int i = 0; i < Count; i++)
+                {
+                    paths[i] = this[i].path;
+                }
+                return paths;
+            }
+        }
 
         public BundleData()
         {
@@ -235,7 +291,7 @@ namespace GameFramework.Resource
             {
                 return false;
             }
-            return bundleData.version == version && bundleData.crc32 == crc32 && bundleData.time == time;
+            return bundleData.version > version;
         }
 
         public override int GetHashCode()
@@ -247,11 +303,32 @@ namespace GameFramework.Resource
         {
             return CatJson.JsonParser.ToJson(this);
         }
+
+        public AssetData Last()
+        {
+            return assets.Last();
+        }
+
+        public AssetData First()
+        {
+            return assets.First();
+        }
+
+        public bool Contains(string name)
+        {
+            return assets.Find(x => x.name == name) != null;
+        }
+
+        public bool Contains(AssetData assetData)
+        {
+            return assets.Contains(assetData);
+        }
     }
 
     /// <summary>
     /// 资源数据
     /// </summary>
+    [Serializable]
     public sealed class AssetData : IRefrence
     {
         /// <summary>

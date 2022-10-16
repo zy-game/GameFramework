@@ -15,10 +15,7 @@ namespace GameFramework.Resource
     /// </summary>
     public sealed class ResourceManager : IResourceManager
     {
-        /// <summary>
-        /// 资源模式
-        /// </summary>
-        private ResourceModle resouceModle;
+
 
         /// <summary>
         /// 资源读写管道
@@ -40,25 +37,14 @@ namespace GameFramework.Resource
         /// </summary>
         public ResourceManager()
         {
-        }
-
-        /// <summary>
-        /// 设置资源模式
-        /// </summary>
-        /// <param name="modle">资源模式</param>
-        public void SetResourceModle(ResourceModle modle)
-        {
-            resouceModle = modle;
-
             resourceStreamingHandler = Loader.Generate<DefaultResourceStreamingHandler>();
             resourceLoaderHandler = Loader.Generate<ResourceLoaderHandler>();
-
-            resourceLoaderHandler.SetResourceModel(resouceModle);
             resourceLoaderHandler.SetResourceStreamingHandler(resourceStreamingHandler);
-
             resourceUpdateHandler = Loader.Generate<DefaultResourceUpdateHandler>();
             resourceUpdateHandler.SetResourceStreamingHandler(resourceStreamingHandler);
         }
+
+
 
         /// <summary>
         /// 同步加载资源对象
@@ -171,19 +157,17 @@ namespace GameFramework.Resource
         /// <param name="compoleted"></param>
         public void CheckoutResourceUpdate(string url, GameFrameworkAction<float> progresCallback, GameFrameworkAction<ResourceUpdateState> compoleted)
         {
-            DefaultResourceUpdateListenerHandle defaultResourceUpdateListenerHandle = DefaultResourceUpdateListenerHandle.Generate(progresCallback, compoleted);
-            if (resouceModle == ResourceModle.Streaming)
+            DefaultResourceUpdateListenerHandle defaultResourceUpdateListenerHandle = DefaultResourceUpdateListenerHandle.Generate(progresCallback, state =>
             {
-                resourceUpdateHandler.CheckoutStreamingAssetListUpdate(defaultResourceUpdateListenerHandle);
-                return;
-            }
-            if (resouceModle == ResourceModle.Hotfix)
-            {
+                if (state == ResourceUpdateState.Failure)
+                {
+                    compoleted(state);
+                    return;
+                }
+                defaultResourceUpdateListenerHandle = DefaultResourceUpdateListenerHandle.Generate(progresCallback, compoleted);
                 resourceUpdateHandler.ChekeoutHotfixResourceListUpdate(url, defaultResourceUpdateListenerHandle);
-                return;
-            }
-            defaultResourceUpdateListenerHandle.Progres(1f);
-            defaultResourceUpdateListenerHandle.Completed(ResourceUpdateState.Success);
+            });
+            resourceUpdateHandler.CheckoutStreamingAssetListUpdate(defaultResourceUpdateListenerHandle);
         }
 
         /// <summary>
@@ -193,18 +177,16 @@ namespace GameFramework.Resource
         public void CheckoutResourceUpdate<TResourceUpdateListenerHandler>(string url) where TResourceUpdateListenerHandler : IResourceUpdateListenerHandler
         {
             TResourceUpdateListenerHandler resourceUpdateListenerHandler = Loader.Generate<TResourceUpdateListenerHandler>();
-            if (resouceModle == ResourceModle.Streaming)
+            CheckoutResourceUpdate(url, resourceUpdateListenerHandler.Progres, state => 
             {
-                resourceUpdateHandler.CheckoutStreamingAssetListUpdate(resourceUpdateListenerHandler);
-                return;
-            }
-            if (resouceModle == ResourceModle.Hotfix)
-            {
+                if (state == ResourceUpdateState.Failure)
+                {
+                    resourceUpdateListenerHandler.Completed(state);
+                    return;
+                }
                 resourceUpdateHandler.ChekeoutHotfixResourceListUpdate(url, resourceUpdateListenerHandler);
-                return;
-            }
-            resourceUpdateListenerHandler.Progres(1f);
-            resourceUpdateListenerHandler.Completed(ResourceUpdateState.Success);
+            });
+            resourceUpdateHandler.CheckoutStreamingAssetListUpdate(resourceUpdateListenerHandler);
         }
     }
 }

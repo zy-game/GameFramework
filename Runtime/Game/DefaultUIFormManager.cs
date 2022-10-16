@@ -55,6 +55,7 @@ namespace GameFramework.Game
                 return handler;
             }
             handler = (IUIFormHandler)Loader.Generate(uiType);
+            handler.Awake();
             ToLayer(handler, handler.layer);
             handlers.Add(uiType, handler);
             return default;
@@ -162,8 +163,22 @@ namespace GameFramework.Game
                 }
                 canvas.sortingOrder = layer;
                 canvas.worldCamera = UICamera;
+                canvas.transform.SetParent(UICamera.transform);
+                canvas.transform.localPosition = Vector3.zero;
+                canvas.transform.localRotation = Quaternion.identity;
+                canvas.transform.localScale = Vector3.one;
             }
-            handler.gameObject.SetParent(canvas, position, rotation, scale);
+            GameObject gameObject = ((AbstractUIFormHandler)handler).gameObject;
+            gameObject.transform.SetParent(canvas.transform);
+            RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
+            if (rectTransform.anchorMax == Vector2.one)
+            {
+                rectTransform.offsetMax = Vector2.zero;
+                rectTransform.offsetMin = Vector2.zero;
+            }
+            rectTransform.localPosition = Vector3.zero;
+            rectTransform.localRotation = Quaternion.identity;
+            rectTransform.localScale = Vector3.one;
         }
 
         /// <summary>

@@ -62,16 +62,18 @@ namespace GameFramework.Resource
 
         public async Task<DataStream> ReadStreamingAssetDataAsync(string fileName)
         {
-            if (ExistStreamingAsset(fileName))
+            if (!ExistStreamingAsset(fileName))
             {
                 return default;
             }
+            string filePath = Path.Combine(Application.streamingAssetsPath, fileName);
             if (Application.isEditor)
             {
-                return DataStream.Generate(await File.ReadAllBytesAsync(Path.Combine(Application.streamingAssetsPath, fileName)));
+                byte[] bytes = await File.ReadAllBytesAsync(filePath);
+                return DataStream.Generate(bytes);
             }
             TaskCompletionSource<DataStream> waiting = new TaskCompletionSource<DataStream>();
-            ResourceDownloadHandle resourceDownloadHandle = ResourceDownloadHandle.Generate(Path.Combine(Application.streamingAssetsPath, fileName), args =>
+            ResourceDownloadHandle resourceDownloadHandle = ResourceDownloadHandle.Generate(filePath, args =>
             {
                 if (args.state == ResourceUpdateState.Failure)
                 {
@@ -85,7 +87,7 @@ namespace GameFramework.Resource
 
         public DataStream ReadStreamingAssetDataSync(string fileName)
         {
-            if (ExistStreamingAsset(fileName))
+            if (!ExistStreamingAsset(fileName))
             {
                 return default;
             }

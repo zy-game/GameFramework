@@ -27,13 +27,9 @@ public sealed class MovementScriptble : IGameScript
 }
 public class ExampleGames : MonoBehaviour
 {
-
-    public ResourceModle ResouceModle;
-
     void Start()
     {
         ResourceManager resourceManager = Runtime.GetGameModule<ResourceManager>();
-        resourceManager.SetResourceModle(ResouceModle);
         resourceManager.CheckoutResourceUpdate("https://saltgame-1251268098.cos.ap-chengdu.myqcloud.com/",
         args =>
         {
@@ -47,14 +43,22 @@ public class ExampleGames : MonoBehaviour
                 return;
             }
             SimpleWorld simpleWorld = Runtime.GetGameModule<WorldManager>().OpenWorld<SimpleWorld>();
+            simpleWorld.UIManager.OpenUI<SimpleLoadingUIHandler>();
             simpleWorld.AddScriptble<MovementScriptble>();
-            for (var i = 0; i < 1000000; i++)
+            for (var i = 0; i < 100; i++)
             {
                 IEntity entity = simpleWorld.CreateEntity();
                 entity.AddComponent<GameObjectComponent>();
             }
         });
     }
+}
+
+public sealed class SimpleLoadingUIHandler : AbstractUIFormHandler
+{
+    public override int layer => 10;
+
+    public override string name => "Loading";
 }
 
 

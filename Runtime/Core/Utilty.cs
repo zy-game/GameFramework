@@ -105,26 +105,6 @@ namespace GameFramework
             basic.SetParent(parent.transform, position, rotation, scale);
         }
 
-        public static void SetParent(this Component basic, Component parent)
-        {
-            basic.SetParent(parent, Vector3.zero);
-        }
-
-        public static void SetParent(this Component basic, Component parent, Vector3 position)
-        {
-            basic.SetParent(parent, position, Vector3.zero);
-        }
-
-        public static void SetParent(this Component basic, Component parent, Vector3 position, Vector3 rotation)
-        {
-            basic.SetParent(parent, position, rotation, Vector3.one);
-        }
-
-        public static void SetParent(this Component basic, Component parent, Vector3 position, Vector3 rotation, Vector3 scale)
-        {
-            basic.gameObject.SetParent(parent.transform, position, rotation, scale);
-        }
-
 
         /// <summary>
         /// 【秒级】获取时间（北京时间）
@@ -171,7 +151,7 @@ namespace GameFramework
             DateTime dateStart = new DateTime(1970, 1, 1, 8, 0, 0);
             return Convert.ToInt64((dt - dateStart).TotalMilliseconds);
         }
-  
+
         /// <summary>
         /// 【秒级】获取时间（格林威治时间）
         /// </summary>
@@ -216,6 +196,11 @@ namespace GameFramework
         {
             DateTime dateStart = new DateTime(1970, 1, 1, 0, 0, 0);
             return Convert.ToInt64((dt - dateStart).TotalMilliseconds);
+        }
+
+        public static string GetLastDirectory(string path)
+        {
+            return new System.IO.DirectoryInfo(path).Name;
         }
     }
 }

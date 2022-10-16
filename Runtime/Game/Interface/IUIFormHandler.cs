@@ -1,3 +1,4 @@
+using GameFramework.Events;
 using UnityEngine;
 
 namespace GameFramework.Game
@@ -8,7 +9,10 @@ namespace GameFramework.Game
     public interface IUIFormHandler : IRefrence
     {
         int layer { get; }
-        GameObject gameObject { get; }
         GameObject GetChild(string name);
+        void Notify(EventData eventData);
+        void Awake();
+        void Enable();
+        void Diable();
     }
 }

@@ -1,6 +1,5 @@
 using System.Text;
 using System.IO;
-using System.Collections.Concurrent;
 using GameFramework.Network;
 using System.Collections.Generic;
 using UnityEngine;
@@ -31,16 +30,19 @@ namespace GameFramework.Resource
             BundleList streamingBundleList = null;
             BundleList persistentBundleList = null;
             DataStream resourceDataStreaming = null;
-            if (resourceStreamingHandler.ExistStreamingAsset(AppConfig.HOTFIX_FILE_LIST_NAME))
+            if (!resourceStreamingHandler.ExistStreamingAsset(AppConfig.HOTFIX_FILE_LIST_NAME))
             {
-                resourceDataStreaming = await resourceStreamingHandler.ReadStreamingAssetDataAsync(AppConfig.HOTFIX_FILE_LIST_NAME);
-                if (resourceDataStreaming == null || resourceDataStreaming.position <= 0)
-                {
-                    throw GameFrameworkException.GenerateFormat("not find file:{0}", Path.Combine(Application.streamingAssetsPath, AppConfig.HOTFIX_FILE_LIST_NAME));
-                }
-                streamingBundleList = BundleList.Generate(resourceDataStreaming.ToString());
-                Loader.Release(resourceDataStreaming);
+                this.resourceUpdateListenerHandler.Progres(1f);
+                this.resourceUpdateListenerHandler.Completed(ResourceUpdateState.Success);
+                return;
             }
+            resourceDataStreaming = await resourceStreamingHandler.ReadStreamingAssetDataAsync(AppConfig.HOTFIX_FILE_LIST_NAME);
+            if (resourceDataStreaming == null || resourceDataStreaming.position <= 0)
+            {
+                throw GameFrameworkException.GenerateFormat("not find file:{0}", Path.Combine(Application.streamingAssetsPath, AppConfig.HOTFIX_FILE_LIST_NAME));
+            }
+            streamingBundleList = BundleList.Generate(resourceDataStreaming.ToString());
+            Loader.Release(resourceDataStreaming);
             if (streamingBundleList == null || streamingBundleList.Count <= 0)
             {
                 this.resourceUpdateListenerHandler.Progres(1f);
@@ -68,7 +70,7 @@ namespace GameFramework.Resource
                 {
                     BundleData streamingBundleData = streamingBundleList[i];
                     BundleData persistentBundleData = persistentBundleList.GetBundleData(streamingBundleData.name);
-                    if (persistentBundleData == null || !streamingBundleData.Equals(persistentBundleData))
+                    if (persistentBundleData == null || streamingBundleData.Equals(persistentBundleData))
                     {
                         needUpdateList.Add(streamingBundleData);
                     }
@@ -98,22 +100,19 @@ namespace GameFramework.Resource
                     Debug.Log("write file completed:" + bundleData.name);
                     resourceDownloadHandles.Remove(handle);
                     completedResourceDoanloadHandles.Add(handle);
-                    if (resourceDownloadHandles.Count > 0)
+
+                    BundleData completed = needUpdateList.Find(x => x.name == handle.name);
+                    if (completed != null)
                     {
-                        return;
-                    }
-                    foreach (var item in completedResourceDoanloadHandles)
-                    {
-                        BundleData completed = needUpdateList.Find(x => x.name == item.name);
-                        if (completed == null)
-                        {
-                            continue;
-                        }
                         persistentBundleList.Remove(completed.name);
                         persistentBundleList.Add(completed);
                     }
                     resourceDataStreaming = DataStream.Generate(UTF8Encoding.UTF8.GetBytes(persistentBundleList.ToString()));
                     await resourceStreamingHandler.WriteAsync(AppConfig.HOTFIX_FILE_LIST_NAME, resourceDataStreaming);
+                    if (resourceDownloadHandles.Count > 0)
+                    {
+                        return;
+                    }
                     resourceUpdateListenerHandler.Completed(resourceUpdateState);
                 }, progres =>
                 {
@@ -130,12 +129,13 @@ namespace GameFramework.Resource
             this.resourceUpdateListenerHandler = resourceUpdateListenerHandler;
             NetworkManager networkManager = Runtime.GetGameModule<NetworkManager>();
             BundleList hotfixBundleList = BundleList.Generate(networkManager.Request(Path.Combine(url, AppConfig.HOTFIX_FILE_LIST_NAME)));
+            BundleList persistentBundleList = null;
             if (hotfixBundleList == null)
             {
                 throw GameFrameworkException.GenerateFormat("remote server is not find file:" + Path.Combine(url, AppConfig.HOTFIX_FILE_LIST_NAME));
             }
             DataStream resourceDataStreaming = await resourceStreamingHandler.ReadPersistentDataAsync(AppConfig.HOTFIX_FILE_LIST_NAME);
-            BundleList persistentBundleList = null;
+
             if (resourceDataStreaming != null && resourceDataStreaming.position > 0)
             {
                 persistentBundleList = BundleList.Generate(resourceDataStreaming.ToString());
@@ -164,7 +164,7 @@ namespace GameFramework.Resource
                 this.resourceUpdateListenerHandler.Completed(ResourceUpdateState.Success);
                 return;
             }
-
+            Debug.Log("need update list:" + CatJson.JsonParser.ToJson(needUpdateList));
             //todo download asset
             List<ResourceDownloadHandle> resourceDownloadHandles = new List<ResourceDownloadHandle>();
             List<ResourceDownloadHandle> completedResourceDoanloadHandles = new List<ResourceDownloadHandle>();
@@ -182,22 +182,18 @@ namespace GameFramework.Resource
                     Debug.Log("write file completed:" + bundleData.name);
                     resourceDownloadHandles.Remove(handle);
                     completedResourceDoanloadHandles.Add(handle);
-                    if (resourceDownloadHandles.Count > 0)
+
+                    BundleData completed = needUpdateList.Find(x => x.name == handle.name);
+                    if (completed != null)
                     {
-                        return;
-                    }
-                    foreach (var item in completedResourceDoanloadHandles)
-                    {
-                        BundleData completed = needUpdateList.Find(x => x.name == item.name);
-                        if (completed == null)
-                        {
-                            continue;
-                        }
-                        persistentBundleList.Remove(completed.name);
                         persistentBundleList.Add(completed);
                     }
                     resourceDataStreaming = DataStream.Generate(UTF8Encoding.UTF8.GetBytes(persistentBundleList.ToString()));
                     await resourceStreamingHandler.WriteAsync(AppConfig.HOTFIX_FILE_LIST_NAME, resourceDataStreaming);
+                    if (resourceDownloadHandles.Count > 0)
+                    {
+                        return;
+                    }
                     resourceUpdateListenerHandler.Completed(resourceUpdateState);
                 }, progres =>
                 {

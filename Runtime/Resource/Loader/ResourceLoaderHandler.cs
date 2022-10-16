@@ -29,7 +29,6 @@ namespace GameFramework.Resource
 
         private AutoResetEvent waiter;
         private HashSet<string> loading;
-        private ResourceModle resouceModle;
         private List<IBundleHandler> bundles;
         private IResourceStreamingHandler resourceStreamingHandler;
         private List<IBundleHandler> waitingUnloadBundleHandler = new List<IBundleHandler>();
@@ -131,11 +130,6 @@ namespace GameFramework.Resource
             this.resourceStreamingHandler = null;
 
             bundles.Clear();
-        }
-
-        public void SetResourceModel(ResourceModle modle)
-        {
-            resouceModle = modle;
         }
 
         public void SetResourceStreamingHandler(IResourceStreamingHandler resourceStreamingHandler)

@@ -12,12 +12,6 @@ namespace GameFramework.Resource
     public interface IResourceManager : IGameModule
     {
         /// <summary>
-        /// 设置资源模式
-        /// </summary>
-        /// <param name="modle">资源模式</param>
-        void SetResourceModle(ResourceModle modle);
-
-        /// <summary>
         /// 加载资源
         /// </summary>
         /// <param name="name">资源名</param>
