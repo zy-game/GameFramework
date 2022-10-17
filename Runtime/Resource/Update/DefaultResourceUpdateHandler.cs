@@ -70,7 +70,7 @@ namespace GameFramework.Resource
                 {
                     BundleData streamingBundleData = streamingBundleList[i];
                     BundleData persistentBundleData = persistentBundleList.GetBundleData(streamingBundleData.name);
-                    if (persistentBundleData == null || streamingBundleData.Equals(persistentBundleData))
+                    if (persistentBundleData == null || streamingBundleData.EqualsVersion(persistentBundleData))
                     {
                         needUpdateList.Add(streamingBundleData);
                     }
@@ -132,7 +132,10 @@ namespace GameFramework.Resource
             BundleList persistentBundleList = null;
             if (hotfixBundleList == null)
             {
-                throw GameFrameworkException.GenerateFormat("remote server is not find file:" + Path.Combine(url, AppConfig.HOTFIX_FILE_LIST_NAME));
+                Debug.LogError("remote server is not find file:" + Path.Combine(url, AppConfig.HOTFIX_FILE_LIST_NAME));
+                resourceUpdateListenerHandler.Progres(1);
+                resourceUpdateListenerHandler.Completed(ResourceUpdateState.Success);
+                return;
             }
             DataStream resourceDataStreaming = await resourceStreamingHandler.ReadPersistentDataAsync(AppConfig.HOTFIX_FILE_LIST_NAME);
 
@@ -152,7 +155,7 @@ namespace GameFramework.Resource
                 {
                     BundleData streamingBundleData = hotfixBundleList[i];
                     BundleData persistentBundleData = persistentBundleList.GetBundleData(streamingBundleData.name);
-                    if (persistentBundleData == null || !streamingBundleData.Equals(persistentBundleData))
+                    if (persistentBundleData == null || !streamingBundleData.EqualsVersion(persistentBundleData))
                     {
                         needUpdateList.Add(streamingBundleData);
                     }

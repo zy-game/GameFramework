@@ -9,7 +9,7 @@ namespace GameFramework.Editor
         [MenuItem("GameFramework/Resouce Generate %`")]
         public static void OpenResouceGenerateWindow()
         {
-            EditorWindow.GetWindow(typeof(ResoueceEditor.ResourceGenerateEditorScript), false, "Resource Generate", true);
+            EditorWindow.GetWindow(typeof(ResoueceEditor.ResourceEditorScript), false, "Resource Generate", true);
         }
 
 

@@ -74,6 +74,34 @@ namespace GameFramework.Resource
         }
 
         /// <summary>
+        /// 移除指定的资源包
+        /// </summary>
+        /// <param name="name"></param>
+        public void Remove(BundleData bundleData)
+        {
+            if (bundleData == null)
+            {
+                UnityEngine.Debug.Log("the bundle data cannot be null");
+                return;
+            }
+            if (!bundles.Contains(bundleData))
+            {
+                BundleData temp = GetBundleData(bundleData.name);
+                if (temp == null)
+                {
+                    UnityEngine.Debug.Log("the bundle data is not exsit to this bundle list:" + bundleData.name);
+                }
+                else
+                {
+                    UnityEngine.Debug.Log("the bundle data is not exsit to this bundle list:" + bundleData.name + "  " + temp.GetHashCode() + "  " + bundleData.GetHashCode());
+                }
+                return;
+            }
+            bundles.Remove(bundleData);
+            UnityEngine.Debug.Log("remove bundle data:" + bundleData.name);
+        }
+
+        /// <summary>
         /// 添加资源包
         /// </summary>
         /// <param name="bundleData">资源包</param>
@@ -284,9 +312,8 @@ namespace GameFramework.Resource
             return assets.AsParallel().Where(x => x.name == assetName).FirstOrDefault() != default;
         }
 
-        public override bool Equals(object obj)
+        public bool EqualsVersion(BundleData bundleData)
         {
-            BundleData bundleData = (BundleData)obj;
             if (bundleData == null)
             {
                 return false;
@@ -298,7 +325,10 @@ namespace GameFramework.Resource
         {
             return base.GetHashCode();
         }
-
+        public override bool Equals(object obj)
+        {
+            return base.Equals(obj);
+        }
         public override string ToString()
         {
             return CatJson.JsonParser.ToJson(this);

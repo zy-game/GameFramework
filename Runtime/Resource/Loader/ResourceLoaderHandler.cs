@@ -18,7 +18,7 @@ namespace GameFramework.Resource
             return handler != null;
         }
 
-        
+
     }
     sealed class ResourceLoaderHandler : IResourceLoaderHandler
     {
@@ -44,7 +44,11 @@ namespace GameFramework.Resource
         {
             LoadBundleList();
             BundleData bundleData = bundleList.GetBundleDataWithAsset(assetName);
-            GameFrameworkException.IsNull(bundleData);
+            if (bundleData == null)
+            {
+                Debug.LogError("not find asset data:" + assetName);
+                return default;
+            }
             AssetData assetData = bundleData.GetAssetData(assetName);
             if (bundles.TryGetValue(bundleData.name, out IBundleHandler handler))
             {
@@ -103,9 +107,10 @@ namespace GameFramework.Resource
                 return;
             }
             bundleList = new BundleList();
-            TextAsset resourceBundleListData = resourceStreamingHandler.ReadResourceDataSync<TextAsset>(Path.GetFileNameWithoutExtension(AppConfig.HOTFIX_FILE_LIST_NAME));
+            TextAsset resourceBundleListData = resourceStreamingHandler.ReadResourceDataSync<TextAsset>("files/" + AppConfig.HOTFIX_FILE_LIST_NAME);
             if (resourceBundleListData != null)
             {
+                Debug.Log("packaged data:" + resourceBundleListData.text);
                 BundleList resourceBundleList = BundleList.Generate(resourceBundleListData.text);
                 if (resourceBundleList != null && resourceBundleList.Count > 0)
                 {

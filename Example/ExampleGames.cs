@@ -42,6 +42,7 @@ public class ExampleGames : MonoBehaviour
                 Debug.Log("update resource failur");
                 return;
             }
+            Debug.Log("resource update success");
             SimpleWorld simpleWorld = Runtime.GetGameModule<WorldManager>().OpenWorld<SimpleWorld>();
             simpleWorld.UIManager.OpenUI<SimpleLoadingUIHandler>();
             simpleWorld.AddScriptble<MovementScriptble>();

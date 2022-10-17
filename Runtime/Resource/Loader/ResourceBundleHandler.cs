@@ -13,6 +13,7 @@ namespace GameFramework.Resource
         public string name { get; internal set; }
         public ResourceBundleHandler()
         {
+            resHandleCacheing = new Dictionary<string, ResHandle>();
         }
 
         public bool CanUnload()
@@ -27,7 +28,7 @@ namespace GameFramework.Resource
             {
                 return handle;
             }
-            Object assetObject = Resources.Load(assetData.path);
+            Object assetObject = Resources.Load("files/" + assetData.name);
             GameFrameworkException.IsNull(assetObject);
             handle = ResHandle.GenerateHandler(this, assetObject);
             resHandleCacheing.Add(assetData.name, handle);
@@ -42,7 +43,7 @@ namespace GameFramework.Resource
                 return handle;
             }
             TaskCompletionSource<ResHandle> waiting = new TaskCompletionSource<ResHandle>();
-            ResourceRequest request = Resources.LoadAsync(assetData.path);
+            ResourceRequest request = Resources.LoadAsync("files/" + assetData.name);
             request.completed += _ =>
             {
                 if (!request.isDone)

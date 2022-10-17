@@ -13,12 +13,12 @@ namespace GameFramework.Resource
 
         public bool ExistPersistentAsset(string fileName)
         {
-            return File.Exists(Path.Combine(Application.persistentDataPath, fileName));
+            return File.Exists(AppConfig.HOTFIX_FILE_PATH + fileName);
         }
 
         public bool ExistStreamingAsset(string fileName)
         {
-            return File.Exists(Path.Combine(Application.streamingAssetsPath, fileName));
+            return File.Exists(AppConfig.STREAMING_FILE_PATH + fileName);
         }
 
         public async Task<DataStream> ReadPersistentDataAsync(string fileName)
@@ -27,7 +27,7 @@ namespace GameFramework.Resource
             {
                 return default;
             }
-            return DataStream.Generate(await File.ReadAllBytesAsync(Path.Combine(Application.persistentDataPath, fileName)));
+            return DataStream.Generate(await File.ReadAllBytesAsync(AppConfig.HOTFIX_FILE_PATH + fileName));
         }
 
         public DataStream ReadPersistentDataSync(string fileName)
@@ -36,7 +36,7 @@ namespace GameFramework.Resource
             {
                 return default;
             }
-            return DataStream.Generate(File.ReadAllBytes(Path.Combine(Application.persistentDataPath, fileName)));
+            return DataStream.Generate(File.ReadAllBytes(AppConfig.HOTFIX_FILE_PATH + fileName));
         }
 
         public async Task<T> ReadResourceDataAsync<T>(string fileName) where T : Object
@@ -66,7 +66,7 @@ namespace GameFramework.Resource
             {
                 return default;
             }
-            string filePath = Path.Combine(Application.streamingAssetsPath, fileName);
+            string filePath = AppConfig.STREAMING_FILE_PATH + fileName;
             if (Application.isEditor)
             {
                 byte[] bytes = await File.ReadAllBytesAsync(filePath);
@@ -93,10 +93,10 @@ namespace GameFramework.Resource
             }
             if (Application.isEditor)
             {
-                return DataStream.Generate(File.ReadAllBytes(Path.Combine(Application.streamingAssetsPath, fileName)));
+                return DataStream.Generate(File.ReadAllBytes(AppConfig.STREAMING_FILE_PATH + fileName));
             }
 
-            ResourceDownloadHandle resourceDownloadHandle = ResourceDownloadHandle.Generate(Path.Combine(Application.streamingAssetsPath, fileName), null, null);
+            ResourceDownloadHandle resourceDownloadHandle = ResourceDownloadHandle.Generate(AppConfig.STREAMING_FILE_PATH + fileName, null, null);
             while (!resourceDownloadHandle.isDone)
             {
                 Thread.Sleep(10);
@@ -116,12 +116,12 @@ namespace GameFramework.Resource
 
         public Task WriteAsync(string fileName, DataStream stream)
         {
-            return File.WriteAllBytesAsync(Path.Combine(Application.persistentDataPath, fileName), stream.bytes);
+            return File.WriteAllBytesAsync(AppConfig.HOTFIX_FILE_PATH + fileName, stream.bytes);
         }
 
         public void WriteSync(string fileName, DataStream stream)
         {
-            File.WriteAllBytes(Path.Combine(Application.persistentDataPath, fileName), stream.bytes);
+            File.WriteAllBytes(AppConfig.HOTFIX_FILE_PATH + fileName, stream.bytes);
         }
     }
 }

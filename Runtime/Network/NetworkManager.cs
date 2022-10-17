@@ -3,6 +3,7 @@ using System.Net;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using System;
 
 namespace GameFramework.Network
 {
@@ -432,21 +433,29 @@ namespace GameFramework.Network
                     stream.Write(UTF8Encoding.UTF8.GetBytes(postData));
                 }
             }
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+            try
             {
-                if (response.StatusCode != HttpStatusCode.OK)
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
-                    throw GameFrameworkException.Generate(response.StatusCode);
-                }
-                using (Stream resposeStream = response.GetResponseStream())
-                {
-                    using (StreamReader reader = new StreamReader(resposeStream))
+                    if (response.StatusCode != HttpStatusCode.OK)
                     {
-                        string result = reader.ReadToEnd();
-                        request.Abort();
-                        return result;
+                        throw GameFrameworkException.Generate(response.StatusCode);
+                    }
+                    using (Stream resposeStream = response.GetResponseStream())
+                    {
+                        using (StreamReader reader = new StreamReader(resposeStream))
+                        {
+                            string result = reader.ReadToEnd();
+                            request.Abort();
+                            return result;
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError(e.Message);
+                return string.Empty;
             }
         }
 
@@ -485,21 +494,29 @@ namespace GameFramework.Network
                     await stream.WriteAsync(UTF8Encoding.UTF8.GetBytes(postData));
                 }
             }
-            using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+            try
             {
-                if (response.StatusCode != HttpStatusCode.OK)
+                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
                 {
-                    throw GameFrameworkException.Generate(response.StatusCode);
-                }
-                using (Stream resposeStream = response.GetResponseStream())
-                {
-                    using (StreamReader reader = new StreamReader(resposeStream))
+                    if (response.StatusCode != HttpStatusCode.OK)
                     {
-                        string result = await reader.ReadToEndAsync();
-                        request.Abort();
-                        return result;
+                        throw GameFrameworkException.Generate(response.StatusCode);
+                    }
+                    using (Stream resposeStream = response.GetResponseStream())
+                    {
+                        using (StreamReader reader = new StreamReader(resposeStream))
+                        {
+                            string result = await reader.ReadToEndAsync();
+                            request.Abort();
+                            return result;
+                        }
                     }
                 }
+            }
+            catch (Exception e)
+            {
+                UnityEngine.Debug.LogError(e);
+                return string.Empty;
             }
         }
 
