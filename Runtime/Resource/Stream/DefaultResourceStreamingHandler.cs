@@ -114,14 +114,34 @@ namespace GameFramework.Resource
         }
 
 
-        public Task WriteAsync(string fileName, DataStream stream)
+        public async Task WriteAsync(string fileName, DataStream stream)
         {
-            return File.WriteAllBytesAsync(AppConfig.HOTFIX_FILE_PATH + fileName, stream.bytes);
+            if (File.Exists(AppConfig.HOTFIX_FILE_PATH + fileName))
+            {
+                File.Delete(AppConfig.HOTFIX_FILE_PATH + fileName);
+            }
+            using (FileStream fileStream = new FileStream(AppConfig.HOTFIX_FILE_PATH + fileName, FileMode.CreateNew, FileAccess.Write))
+            {
+                await fileStream.WriteAsync(stream.bytes, 0, stream.position);
+                await fileStream.FlushAsync();
+                fileStream.Close();
+                fileStream.Dispose();
+            }
         }
 
         public void WriteSync(string fileName, DataStream stream)
         {
-            File.WriteAllBytes(AppConfig.HOTFIX_FILE_PATH + fileName, stream.bytes);
+            if (File.Exists(AppConfig.HOTFIX_FILE_PATH + fileName))
+            {
+                File.Delete(AppConfig.HOTFIX_FILE_PATH + fileName);
+            }
+            using (FileStream fileStream = new FileStream(AppConfig.HOTFIX_FILE_PATH + fileName, FileMode.CreateNew, FileAccess.Write))
+            {
+                fileStream.Write(stream.bytes, 0, stream.position);
+                fileStream.Flush();
+                fileStream.Close();
+                fileStream.Dispose();
+            }
         }
     }
 }

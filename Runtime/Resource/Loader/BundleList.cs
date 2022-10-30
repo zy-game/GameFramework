@@ -66,11 +66,9 @@ namespace GameFramework.Resource
             BundleData bundleData = GetBundleData(name);
             if (bundleData == null)
             {
-                UnityEngine.Debug.Log("not find bundle data:" + name);
                 return;
             }
             bundles.Remove(bundleData);
-            UnityEngine.Debug.Log("remove bundle data:" + bundleData.name);
         }
 
         /// <summary>
@@ -98,7 +96,6 @@ namespace GameFramework.Resource
                 return;
             }
             bundles.Remove(bundleData);
-            UnityEngine.Debug.Log("remove bundle data:" + bundleData.name);
         }
 
         /// <summary>
@@ -112,7 +109,6 @@ namespace GameFramework.Resource
                 Remove(bundleData.name);
             }
             bundles.Add(bundleData);
-            UnityEngine.Debug.Log("add bundle data:" + bundleData.name);
         }
 
         /// <summary>
@@ -160,7 +156,15 @@ namespace GameFramework.Resource
 
             bundles.AddRange(bundleList.bundles);
         }
+        public void AddRange(List<BundleData> bundleDatas)
+        {
+            if (bundleDatas == null)
+            {
+                throw GameFrameworkException.Generate<NullReferenceException>();
+            }
 
+            bundles.AddRange(bundleDatas);
+        }
         public void Clear()
         {
             bundles.Clear();
@@ -183,6 +187,11 @@ namespace GameFramework.Resource
         public bool Contains(BundleData bundle)
         {
             return bundles.Contains(bundle);
+        }
+
+        internal List<BundleData> GetBundleDatas(string moduleName)
+        {
+            return bundles.Where(x => x.module == moduleName).ToList();
         }
     }
 
@@ -216,6 +225,11 @@ namespace GameFramework.Resource
         /// 是否在安装包内
         /// </summary>
         public bool IsApk;
+
+        /// <summary>
+        /// 资源包所属模块
+        /// </summary>
+        public string module;
 
         /// <summary>
         /// 资源列表

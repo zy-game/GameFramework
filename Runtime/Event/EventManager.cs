@@ -5,7 +5,7 @@ namespace GameFramework.Events
     /// <summary>
     /// 事件管理器
     /// </summary>
-    public sealed class EventManager : IEventManager
+    public sealed class EventManager : SingletonBehaviour<EventManager>, IEventManager
     {
         private Queue<EventData> eventUnits;
         private List<SubscribeData> subscribes;
@@ -227,7 +227,7 @@ namespace GameFramework.Events
         /// <summary>
         /// 轮询事件管理器
         /// </summary>
-        public void Update()
+        protected override void Update()
         {
             while (eventUnits.TryDequeue(out EventData eventUnit))
             {

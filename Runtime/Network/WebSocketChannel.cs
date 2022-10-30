@@ -84,7 +84,7 @@ namespace GameFramework.Network
                     timeout++;
                     if (timeout > 3)
                     {
-                        await Runtime.GetGameModule<NetworkManager>().Disconnect(Name);
+                        await NetworkManager.Instance.Disconnect(Name);
                         return;
                     }
                 }

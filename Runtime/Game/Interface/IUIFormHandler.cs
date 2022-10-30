@@ -13,6 +13,6 @@ namespace GameFramework.Game
         void Notify(EventData eventData);
         void Awake();
         void Enable();
-        void Diable();
+        void Disable();
     }
 }

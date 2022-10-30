@@ -1,6 +1,9 @@
+using GameFramework.Resource;
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
+using UnityEngine.UI;
 
 namespace GameFramework.Game
 {
@@ -17,12 +20,18 @@ namespace GameFramework.Game
         public static IUIFormManager Generate(IGameWorld game)
         {
             DefaultUIFormManager worldUIManager = Loader.Generate<DefaultUIFormManager>();
-            Resource.ResHandle handle = Runtime.GetGameModule<Resource.ResourceManager>().LoadAssetSync("UICamera");
+            Resource.ResHandle handle = ResourceManager.Instance.LoadAssetSync<GameObject>("UICamera");
             worldUIManager.UICamera = handle.Generate<GameObject>().GetComponent<Camera>();
             if (worldUIManager.UICamera == null)
             {
                 throw GameFrameworkException.Generate("Resources Folder not find UICamera");
             }
+            UniversalAdditionalCameraData universalAdditionalCameraData = game.MainCamera.GetComponent<UniversalAdditionalCameraData>();
+            if (universalAdditionalCameraData != null)
+            {
+                universalAdditionalCameraData.cameraStack.Add(worldUIManager.UICamera);
+            }
+            worldUIManager.UICamera.name = game.GetType().Name + "_UICamera";
             worldUIManager.layers = new Dictionary<int, Canvas>();
             worldUIManager.handlers = new Dictionary<Type, IUIFormHandler>();
             worldUIManager.cacheings = new Dictionary<Type, IUIFormHandler>();
@@ -45,6 +54,7 @@ namespace GameFramework.Game
         {
             if (cacheings.TryGetValue(uiType, out IUIFormHandler handler))
             {
+                handler.Enable();
                 cacheings.Remove(uiType);
                 handlers.Add(uiType, handler);
                 return handler;
@@ -58,7 +68,7 @@ namespace GameFramework.Game
             handler.Awake();
             ToLayer(handler, handler.layer);
             handlers.Add(uiType, handler);
-            return default;
+            return handler;
         }
 
         /// <summary>
@@ -115,6 +125,8 @@ namespace GameFramework.Game
             }
             if (isUnload == false)
             {
+                handler.Disable();
+                handlers.Remove(uiType);
                 cacheings.Add(uiType, handler);
                 return;
             }
@@ -155,7 +167,7 @@ namespace GameFramework.Game
             }
             if (!layers.TryGetValue(layer, out Canvas canvas))
             {
-                Resource.ResHandle handle = Runtime.GetGameModule<Resource.ResourceManager>().LoadAssetSync("Canvas");
+                Resource.ResHandle handle = ResourceManager.Instance.LoadAssetSync<GameObject>("Canvas");
                 canvas = handle.Generate<GameObject>().GetComponent<Canvas>();
                 if (canvas == null)
                 {
@@ -168,7 +180,7 @@ namespace GameFramework.Game
                 canvas.transform.localRotation = Quaternion.identity;
                 canvas.transform.localScale = Vector3.one;
             }
-            GameObject gameObject = ((AbstractUIFormHandler)handler).gameObject;
+            GameObject gameObject = ((UIHandler)handler).gameObject;
             gameObject.transform.SetParent(canvas.transform);
             RectTransform rectTransform = gameObject.GetComponent<RectTransform>();
             if (rectTransform.anchorMax == Vector2.one)
@@ -198,6 +210,34 @@ namespace GameFramework.Game
             }
             layers.Clear();
             GameObject.DestroyImmediate(UICamera.gameObject);
+        }
+    }
+
+    public sealed class UIHandle_CommonLoading : UIHandler
+    {
+        public override int layer => 999;
+
+        public override string name => "Loading";
+
+        private Slider progres_slider;
+        private Text text;
+
+        protected override void OnAwake()
+        {
+            progres_slider = this.GetChild("progress").GetComponent<Slider>();
+            text = this.GetChild("text").GetComponent<Text>();
+            SetLoadingProgres(0);
+            SetProgresText("正在加载资源");
+        }
+
+        public void SetProgresText(string text)
+        {
+            this.text.text = text;
+        }
+
+        public void SetLoadingProgres(float progres)
+        {
+            progres_slider.value = progres;
         }
     }
 }

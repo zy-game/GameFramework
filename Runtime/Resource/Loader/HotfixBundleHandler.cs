@@ -9,7 +9,7 @@ namespace GameFramework.Resource
     sealed class HotfixBundleHandler : IBundleHandler
     {
         private int refCount;
-        private AssetBundle assetBundle;
+        internal AssetBundle assetBundle;
         private bool isCanUnload = false;
         private Dictionary<string, ResHandle> resHandleCacheing;
 
@@ -21,7 +21,7 @@ namespace GameFramework.Resource
             resHandleCacheing = new Dictionary<string, ResHandle>();
         }
 
-        public ResHandle LoadAsset(AssetData assetData)
+        public ResHandle LoadAsset<T>(AssetData assetData) where T : UnityEngine.Object
         {
             GameFrameworkException.IsNull(assetData);
             if (resHandleCacheing.TryGetValue(assetData.name, out ResHandle resHandle))
@@ -29,13 +29,13 @@ namespace GameFramework.Resource
                 return resHandle;
             }
             GameFrameworkException.IsNull(assetBundle);
-            Object assetObject = assetBundle.LoadAsset(assetData.name);
-            resHandle = ResHandle.GenerateHandler(this, assetObject);
+            Object assetObject = assetBundle.LoadAsset<T>(assetData.name);//todo 在这里会有个问题，如果需要加载的是个sprite，但是因为没有指定类型，加载出来的将会是个texture2d
+            resHandle = ResHandle.GenerateHandler(this, assetData.name, assetObject);
             resHandleCacheing.Add(assetData.name, resHandle);
             return resHandle;
         }
 
-        public async Task<ResHandle> LoadAssetAsync(AssetData assetData)
+        public async Task<ResHandle> LoadAssetAsync<T>(AssetData assetData) where T : UnityEngine.Object
         {
             GameFrameworkException.IsNull(assetData);
             if (resHandleCacheing.TryGetValue(assetData.name, out ResHandle resHandle))
@@ -44,7 +44,7 @@ namespace GameFramework.Resource
             }
             GameFrameworkException.IsNull(assetBundle);
             TaskCompletionSource<ResHandle> waiting = new TaskCompletionSource<ResHandle>();
-            AssetBundleRequest request = assetBundle.LoadAssetAsync(assetData.name);
+            AssetBundleRequest request = assetBundle.LoadAssetAsync<T>(assetData.name);
             request.completed += _ =>
             {
                 if (!request.isDone)
@@ -52,7 +52,7 @@ namespace GameFramework.Resource
                     waiting.SetException(GameFrameworkException.Generate("load asset error:" + assetData.name));
                     return;
                 }
-                ResHandle handle = ResHandle.GenerateHandler(this, request.asset);
+                ResHandle handle = ResHandle.GenerateHandler(this, assetData.name, request.asset);
                 resHandleCacheing.Add(assetData.name, handle);
                 waiting.SetResult(handle);
             };
@@ -114,6 +114,7 @@ namespace GameFramework.Resource
             hotfixBundleHandler.name = fileName;
             hotfixBundleHandler.isCanUnload = false;
             hotfixBundleHandler.assetBundle = AssetBundle.LoadFromMemory(stream.bytes);
+            Loader.Release(stream);
             if (hotfixBundleHandler.assetBundle == null)
             {
                 throw GameFrameworkException.Generate("read file error:" + fileName);

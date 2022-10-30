@@ -1,18 +1,20 @@
+using GameFramework.Resource;
+using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 namespace GameFramework.Config
 {
     /// <summary>
     /// 配置表管理器
     /// </summary>
-    public sealed class ConfigManager : IConfigManager
+    public sealed class ConfigManager : Singleton<ConfigManager>, IConfigManager
     {
-        private Dictionary<string, IRefrence> configs;
-        private const string CONFIG_FILE_EXTENSION = ".cfg";
+        private Dictionary<Type, List<IConfig>> configs;
 
         public ConfigManager()
         {
-            configs = new Dictionary<string, IRefrence>();
+            configs = new Dictionary<Type, List<IConfig>>();
         }
 
         /// <summary>
@@ -22,72 +24,165 @@ namespace GameFramework.Config
         {
             foreach (var item in configs.Values)
             {
+                foreach (var config in item)
+                {
+                    Loader.Release(config);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 卸载配置表
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
+        public void UnloadConfig<T>(string name) where T : IConfig
+        {
+            UnloadConfig(typeof(T), name);
+        }
+
+        /// <summary>
+        /// 卸载配置表
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="id"></param>
+        public void UnloadConfig<T>(int id) where T : IConfig
+        {
+            UnloadConfig(typeof(T), id);
+        }
+
+        /// <summary>
+        /// 卸载配置表
+        /// </summary>
+        /// <param name="configType"></param>
+        /// <param name="name"></param>
+        public void UnloadConfig(Type configType, string name)
+        {
+            if (!configs.TryGetValue(configType, out List<IConfig> configList))
+            {
+                return;
+            }
+            IConfig config = configList.Find(x => x.name == name);
+            if (config == null)
+            {
+                return;
+            }
+            configList.Remove(config);
+        }
+
+        /// <summary>
+        /// 卸载配置表
+        /// </summary>
+        /// <param name="configType"></param>
+        /// <param name="id"></param>
+        public void UnloadConfig(Type configType, int id)
+        {
+            if (!configs.TryGetValue(configType, out List<IConfig> configList))
+            {
+                return;
+            }
+            IConfig config = configList.Find(x => x.id == id);
+            if (config == null)
+            {
+                return;
+            }
+            configList.Remove(config);
+        }
+
+        /// <summary>
+        /// 卸载所有相同类型的配置表
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        public void UnloadAllConfig<T>()
+        {
+            UnloadAllConfig(typeof(T));
+        }
+
+        /// <summary>
+        /// 卸载所有相同类型的配置表
+        /// </summary>
+        /// <param name="configType"></param>
+        public void UnloadAllConfig(Type configType)
+        {
+            if (!configs.TryGetValue(configType, out List<IConfig> configList))
+            {
+                return;
+            }
+            foreach (var item in configList)
+            {
                 Loader.Release(item);
             }
+            configList.Clear();
+            configs.Remove(configType);
         }
 
         /// <summary>
         /// 获取配置表
         /// </summary>
-        /// <param name="name">配置表名</param>
-        /// <typeparam name="T">配置表类型</typeparam>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="name"></param>
         /// <returns></returns>
-        public IConfigDatable<T> GetConfigTable<T>(string name) where T : IConfig
+        public T GetConfig<T>(string name) where T : IConfig
         {
-            if (configs.TryGetValue(name, out IRefrence table))
+            return (T)GetConfig(typeof(T), name);
+        }
+
+        /// <summary>
+        /// 获取配置表
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public T GetConfig<T>(int id) where T : IConfig
+        {
+            return (T)GetConfig(typeof(T), id);
+        }
+
+        /// <summary>
+        /// 获取配置表
+        /// </summary>
+        /// <param name="configType"></param>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public IConfig GetConfig(Type configType, string name)
+        {
+            if (!configs.TryGetValue(configType, out List<IConfig> configList))
             {
-                return (IConfigDatable<T>)table;
+                configs.Add(configType, configList = LoadConfig(configType));
             }
-            return default;
+            return configList.Find(x => x.name == name);
         }
 
         /// <summary>
-        /// 是否加载配置表
+        /// 获取配置表
         /// </summary>
-        /// <param name="name">配置表名</param>
+        /// <param name="configType"></param>
+        /// <param name="id"></param>
         /// <returns></returns>
-        public bool HasLoadConfig(string name) => configs.ContainsKey(name);
-
-        /// <summary>
-        /// 加载配置表
-        /// </summary>
-        /// <param name="name">配置表名</param>
-        /// <typeparam name="T">配置表类型</typeparam>
-        /// <returns></returns>
-        public IConfigDatable<T> LoadConfig<T>(string name) where T : IConfig
+        public IConfig GetConfig(Type configType, int id)
         {
-            IConfigDatable<T> configTable = Loader.Generate<IConfigDatable<T>>();
-            configTable.Load(name);
-            return configTable;
+            if (!configs.TryGetValue(configType, out List<IConfig> configList))
+            {
+                configs.Add(configType, configList = LoadConfig(configType));
+            }
+            return configList.Find(x => x.id == id);
         }
 
         /// <summary>
-        /// 回收
+        /// 回收管理器
         /// </summary>
         public void Release()
         {
             Clear();
         }
 
-        /// <summary>
-        /// 卸载配置表
-        /// </summary>
-        /// <param name="name"></param>
-        public void UnloadConfig(string name)
+        private List<IConfig> LoadConfig(Type configType)
         {
-            if (HasLoadConfig(name))
-            {
-                Loader.Release(configs[name]);
-                configs.Remove(name);
-            }
-        }
-
-        /// <summary>
-        /// 轮询
-        /// </summary>
-        public void Update()
-        {
-
+            ResHandle handle = ResourceManager.Instance.LoadAssetSync<TextAsset>(configType.Name);
+            handle.EnsueAssetLoadState();
+            TextAsset textAsset = handle.Generate<TextAsset>();
+            GameFrameworkException.IsNull(textAsset);
+            return (List<IConfig>)CatJson.JsonParser.ParseJson(textAsset.text, typeof(List<>).MakeGenericType(configType));
         }
     }
 }

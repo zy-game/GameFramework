@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.Networking;
 using System.Linq;
 using System.Collections;
+using System.Threading.Tasks;
 
 namespace GameFramework.Resource
 {
@@ -17,194 +18,193 @@ namespace GameFramework.Resource
 
     sealed class DefaultResourceUpdateHandler : IResourceUpdateHandler
     {
-        private string rootUrl;
-        private List<IDownloadHandle> failures;
-        private List<IDownloadHandle> downloads;
-        private List<IDownloadHandle> completeds;
+        private BundleList persistentBundleList;
+        private ResourceUpdateState resourceUpdateState;
+        private List<BundleData> waitingUpdateBundleList;
         private IResourceStreamingHandler resourceStreamingHandler;
+        private List<ResourceDownloadHandle> resourceDownloadHandles;
         private IResourceUpdateListenerHandler resourceUpdateListenerHandler;
-
-        public async void CheckoutStreamingAssetListUpdate(IResourceUpdateListenerHandler resourceUpdateListenerHandler)
+        private List<ResourceDownloadHandle> resourceDownloadCompletedHandles;
+        public DefaultResourceUpdateHandler()
         {
-            this.resourceUpdateListenerHandler = resourceUpdateListenerHandler;
-            BundleList streamingBundleList = null;
-            BundleList persistentBundleList = null;
-            DataStream resourceDataStreaming = null;
+            waitingUpdateBundleList = new List<BundleData>();
+            resourceDownloadHandles = new List<ResourceDownloadHandle>();
+            resourceDownloadCompletedHandles = new List<ResourceDownloadHandle>();
+        }
+
+        private async Task<List<BundleData>> ReadStreamingAssetsBundleListDataAsync(string moduleName)
+        {
             if (!resourceStreamingHandler.ExistStreamingAsset(AppConfig.HOTFIX_FILE_LIST_NAME))
             {
-                this.resourceUpdateListenerHandler.Progres(1f);
-                this.resourceUpdateListenerHandler.Completed(ResourceUpdateState.Success);
-                return;
+                return default;
             }
-            resourceDataStreaming = await resourceStreamingHandler.ReadStreamingAssetDataAsync(AppConfig.HOTFIX_FILE_LIST_NAME);
+            DataStream resourceDataStreaming = await resourceStreamingHandler.ReadStreamingAssetDataAsync(AppConfig.HOTFIX_FILE_LIST_NAME);
             if (resourceDataStreaming == null || resourceDataStreaming.position <= 0)
             {
                 throw GameFrameworkException.GenerateFormat("not find file:{0}", Path.Combine(Application.streamingAssetsPath, AppConfig.HOTFIX_FILE_LIST_NAME));
             }
-            streamingBundleList = BundleList.Generate(resourceDataStreaming.ToString());
+            BundleList streamingBundleList = BundleList.Generate(resourceDataStreaming.ToString());
             Loader.Release(resourceDataStreaming);
             if (streamingBundleList == null || streamingBundleList.Count <= 0)
             {
-                this.resourceUpdateListenerHandler.Progres(1f);
-                this.resourceUpdateListenerHandler.Completed(ResourceUpdateState.Success);
-                return;
+                return default;
             }
-            if (resourceStreamingHandler.ExistPersistentAsset(AppConfig.HOTFIX_FILE_LIST_NAME))
-            {
-                resourceDataStreaming = await resourceStreamingHandler.ReadPersistentDataAsync(AppConfig.HOTFIX_FILE_LIST_NAME);
-                if (resourceDataStreaming != null || resourceDataStreaming.position > 0)
-                {
-                    persistentBundleList = BundleList.Generate(resourceDataStreaming.ToString());
-                    Loader.Release(resourceDataStreaming);
-                }
-            }
-            List<BundleData> needUpdateList = new List<BundleData>();
-            if (persistentBundleList == null || persistentBundleList.Count <= 0)
+            return streamingBundleList.GetBundleDatas(moduleName);
+        }
+
+        private async Task<List<BundleData>> ReadPersistentAssetsBundleListDataAsync(string moduleName)
+        {
+            if (!resourceStreamingHandler.ExistPersistentAsset(AppConfig.HOTFIX_FILE_LIST_NAME))
             {
                 persistentBundleList = Loader.Generate<BundleList>();
-                needUpdateList.AddRange(streamingBundleList.GetBundles());
             }
             else
             {
-                for (int i = 0; i < streamingBundleList.Count; i++)
+                DataStream resourceDataStreaming = await resourceStreamingHandler.ReadPersistentDataAsync(AppConfig.HOTFIX_FILE_LIST_NAME);
+                if (resourceDataStreaming == null || resourceDataStreaming.position <= 0)
                 {
-                    BundleData streamingBundleData = streamingBundleList[i];
-                    BundleData persistentBundleData = persistentBundleList.GetBundleData(streamingBundleData.name);
-                    if (persistentBundleData == null || streamingBundleData.EqualsVersion(persistentBundleData))
+                    throw GameFrameworkException.GenerateFormat("not find file:{0}", Path.Combine(Application.streamingAssetsPath, AppConfig.HOTFIX_FILE_LIST_NAME));
+                }
+                persistentBundleList = BundleList.Generate(resourceDataStreaming.ToString());
+                Loader.Release(resourceDataStreaming);
+                Debug.Log("读取本地资源列表");
+                if (persistentBundleList == null)
+                {
+                    persistentBundleList = Loader.Generate<BundleList>();
+                }
+            }
+            return persistentBundleList.GetBundleDatas(moduleName);
+        }
+
+        private void OnUpdateCompleted()
+        {
+            this.resourceUpdateListenerHandler.Progres(1f);
+            this.resourceUpdateListenerHandler.Completed(ResourceUpdateState.Success);
+        }
+
+        public async void CheckoutStreamingAssetListUpdate(string moduleName, IResourceUpdateListenerHandler resourceUpdateListenerHandler)
+        {
+            this.resourceUpdateListenerHandler = resourceUpdateListenerHandler;
+            List<BundleData> bundleDataList = await ReadStreamingAssetsBundleListDataAsync(moduleName);
+            if (bundleDataList == default || bundleDataList.Count <= 0)
+            {
+                OnUpdateCompleted();
+                return;
+            }
+            List<BundleData> persistenBundleList = await ReadPersistentAssetsBundleListDataAsync(moduleName);
+
+            if (persistenBundleList == null || persistenBundleList.Count <= 0)
+            {
+                waitingUpdateBundleList.AddRange(bundleDataList);
+            }
+            else
+            {
+                for (int i = 0; i < bundleDataList.Count; i++)
+                {
+                    BundleData streamingBundleData = bundleDataList[i];
+                    BundleData persistentBundleData = persistenBundleList.Find(x => x.name == streamingBundleData.name);
+                    if (persistentBundleData == null || persistentBundleData.EqualsVersion(streamingBundleData))
                     {
-                        needUpdateList.Add(streamingBundleData);
+                        waitingUpdateBundleList.Add(streamingBundleData);
                     }
                 }
             }
 
-            if (needUpdateList.Count <= 0)
+            if (waitingUpdateBundleList.Count <= 0)
             {
-                this.resourceUpdateListenerHandler.Progres(1f);
-                this.resourceUpdateListenerHandler.Completed(ResourceUpdateState.Success);
+                OnUpdateCompleted();
                 return;
             }
-            List<ResourceDownloadHandle> resourceDownloadHandles = new List<ResourceDownloadHandle>();
-            List<ResourceDownloadHandle> completedResourceDoanloadHandles = new List<ResourceDownloadHandle>();
-            ResourceUpdateState resourceUpdateState = ResourceUpdateState.Success;
-            //todo copy asset
-            foreach (BundleData bundleData in needUpdateList)
+            Debug.Log("需要更新资源");
+            resourceUpdateState = ResourceUpdateState.Success;
+            foreach (BundleData bundleData in waitingUpdateBundleList)
             {
-                ResourceDownloadHandle downloadHandle = ResourceDownloadHandle.Generate(Path.Combine(Application.streamingAssetsPath, bundleData.name), async handle =>
-                {
-                    if (handle.state == ResourceUpdateState.Failure)
-                    {
-                        resourceUpdateState = handle.state;
-                        return;
-                    }
-                    await resourceStreamingHandler.WriteAsync(bundleData.name, handle.stream);
-                    Debug.Log("write file completed:" + bundleData.name);
-                    resourceDownloadHandles.Remove(handle);
-                    completedResourceDoanloadHandles.Add(handle);
-
-                    BundleData completed = needUpdateList.Find(x => x.name == handle.name);
-                    if (completed != null)
-                    {
-                        persistentBundleList.Remove(completed.name);
-                        persistentBundleList.Add(completed);
-                    }
-                    resourceDataStreaming = DataStream.Generate(UTF8Encoding.UTF8.GetBytes(persistentBundleList.ToString()));
-                    await resourceStreamingHandler.WriteAsync(AppConfig.HOTFIX_FILE_LIST_NAME, resourceDataStreaming);
-                    if (resourceDownloadHandles.Count > 0)
-                    {
-                        return;
-                    }
-                    resourceUpdateListenerHandler.Completed(resourceUpdateState);
-                }, progres =>
-                {
-                    float p = resourceDownloadHandles.Sum(x => x.progres) + completedResourceDoanloadHandles.Count;
-                    p /= resourceDownloadHandles.Count + completedResourceDoanloadHandles.Count;
-                    resourceUpdateListenerHandler.Progres(p);
-                });
-                resourceDownloadHandles.Add(downloadHandle);
+                resourceDownloadHandles.Add(OnStartDownloadBundleData(AppConfig.STREAMING_FILE_PATH, bundleData));
             }
         }
 
-        public async void ChekeoutHotfixResourceListUpdate(string url, IResourceUpdateListenerHandler resourceUpdateListenerHandler)
+        private ResourceDownloadHandle OnStartDownloadBundleData(string remoteUrl, BundleData bundleData)
         {
-            this.resourceUpdateListenerHandler = resourceUpdateListenerHandler;
-            NetworkManager networkManager = Runtime.GetGameModule<NetworkManager>();
-            BundleList hotfixBundleList = BundleList.Generate(networkManager.Request(Path.Combine(url, AppConfig.HOTFIX_FILE_LIST_NAME)));
-            BundleList persistentBundleList = null;
-            if (hotfixBundleList == null)
+            return ResourceDownloadHandle.Generate(Path.Combine(remoteUrl, bundleData.name), async handle =>
             {
-                Debug.LogError("remote server is not find file:" + Path.Combine(url, AppConfig.HOTFIX_FILE_LIST_NAME));
-                resourceUpdateListenerHandler.Progres(1);
-                resourceUpdateListenerHandler.Completed(ResourceUpdateState.Success);
+                if (handle.state == ResourceUpdateState.Failure)
+                {
+                    resourceUpdateState = handle.state;
+                    return;
+                }
+                await resourceStreamingHandler.WriteAsync(bundleData.name, handle.stream);
+                Debug.Log("write file completed:" + bundleData.name + " length:" + handle.stream.position + "  " + handle.stream.length);
+                resourceDownloadHandles.Remove(handle);
+                resourceDownloadCompletedHandles.Add(handle);
+                BundleData completed = waitingUpdateBundleList.Find(x => x.name == handle.name);
+                if (completed != null)
+                {
+                    persistentBundleList.Add(completed);
+                }
+                DataStream resourceDataStreaming = DataStream.Generate(UTF8Encoding.UTF8.GetBytes(persistentBundleList.ToString()));
+                resourceStreamingHandler.WriteSync(AppConfig.HOTFIX_FILE_LIST_NAME, resourceDataStreaming);
+                if (resourceDownloadHandles.Count > 0)
+                {
+                    return;
+                }
+                resourceUpdateListenerHandler.Completed(resourceUpdateState);
+            }, progres =>
+            {
+                float p = resourceDownloadHandles.Sum(x => x.progres) / (float)(resourceDownloadHandles.Count + resourceDownloadCompletedHandles.Count);
+                resourceUpdateListenerHandler.Progres(p);
+            });
+        }
+
+        public async void ChekeoutHotfixResourceListUpdate(string moduleName, IResourceUpdateListenerHandler resourceUpdateListenerHandler)
+        {
+            if (string.IsNullOrEmpty(AppConfig.RESOURCE_SERVER_ADDRESS))
+            {
+                OnUpdateCompleted();
                 return;
             }
-            DataStream resourceDataStreaming = await resourceStreamingHandler.ReadPersistentDataAsync(AppConfig.HOTFIX_FILE_LIST_NAME);
-
-            if (resourceDataStreaming != null && resourceDataStreaming.position > 0)
+            this.resourceUpdateListenerHandler = resourceUpdateListenerHandler;
+            string fileListAddress = Path.Combine(AppConfig.RESOURCE_SERVER_ADDRESS, AppConfig.HOTFIX_FILE_LIST_NAME);
+            BundleList hotfixBundleList = BundleList.Generate(NetworkManager.Instance.Request(fileListAddress));
+            if (hotfixBundleList == null)
             {
-                persistentBundleList = BundleList.Generate(resourceDataStreaming.ToString());
+                Debug.LogError("remote server is not find file:" + fileListAddress);
+                OnUpdateCompleted();
+                return;
             }
-            List<BundleData> needUpdateList = new List<BundleData>();
+            List<BundleData> remoteModuleBundleList = hotfixBundleList.GetBundleDatas(moduleName);
+            if (remoteModuleBundleList == null || remoteModuleBundleList.Count <= 0)
+            {
+                OnUpdateCompleted();
+                return;
+            }
+            List<BundleData> persistentBundleList = await ReadPersistentAssetsBundleListDataAsync(moduleName);
             if (persistentBundleList == null || persistentBundleList.Count <= 0)
             {
-                persistentBundleList = Loader.Generate<BundleList>();
-                needUpdateList.AddRange(hotfixBundleList.GetBundles());
+                waitingUpdateBundleList.AddRange(remoteModuleBundleList);
             }
             else
             {
-                for (int i = 0; i < hotfixBundleList.Count; i++)
+                for (int i = 0; i < remoteModuleBundleList.Count; i++)
                 {
-                    BundleData streamingBundleData = hotfixBundleList[i];
-                    BundleData persistentBundleData = persistentBundleList.GetBundleData(streamingBundleData.name);
-                    if (persistentBundleData == null || !streamingBundleData.EqualsVersion(persistentBundleData))
+                    BundleData hotfixBundleData = remoteModuleBundleList[i];
+                    BundleData persistentBundleData = persistentBundleList.Find(x => x.name == hotfixBundleData.name);
+                    if (persistentBundleData == null || persistentBundleData.EqualsVersion(hotfixBundleData))
                     {
-                        needUpdateList.Add(streamingBundleData);
+                        waitingUpdateBundleList.Add(hotfixBundleData);
                     }
                 }
             }
-            if (needUpdateList.Count <= 0)
+
+            if (waitingUpdateBundleList.Count <= 0)
             {
-                this.resourceUpdateListenerHandler.Progres(1f);
-                this.resourceUpdateListenerHandler.Completed(ResourceUpdateState.Success);
+                OnUpdateCompleted();
                 return;
             }
-            Debug.Log("need update list:" + CatJson.JsonParser.ToJson(needUpdateList));
-            //todo download asset
-            List<ResourceDownloadHandle> resourceDownloadHandles = new List<ResourceDownloadHandle>();
-            List<ResourceDownloadHandle> completedResourceDoanloadHandles = new List<ResourceDownloadHandle>();
-            ResourceUpdateState resourceUpdateState = ResourceUpdateState.Success;
-            foreach (BundleData bundleData in needUpdateList)
+            Debug.Log("需要更新资源");
+            resourceUpdateState = ResourceUpdateState.Success;
+            foreach (BundleData bundleData in waitingUpdateBundleList)
             {
-                ResourceDownloadHandle downloadHandle = ResourceDownloadHandle.Generate(Path.Combine(url, bundleData.name), async handle =>
-                {
-                    if (handle.state == ResourceUpdateState.Failure)
-                    {
-                        resourceUpdateState = handle.state;
-                        return;
-                    }
-                    await resourceStreamingHandler.WriteAsync(bundleData.name, handle.stream);
-                    Debug.Log("write file completed:" + bundleData.name);
-                    resourceDownloadHandles.Remove(handle);
-                    completedResourceDoanloadHandles.Add(handle);
-
-                    BundleData completed = needUpdateList.Find(x => x.name == handle.name);
-                    if (completed != null)
-                    {
-                        persistentBundleList.Add(completed);
-                    }
-                    resourceDataStreaming = DataStream.Generate(UTF8Encoding.UTF8.GetBytes(persistentBundleList.ToString()));
-                    await resourceStreamingHandler.WriteAsync(AppConfig.HOTFIX_FILE_LIST_NAME, resourceDataStreaming);
-                    if (resourceDownloadHandles.Count > 0)
-                    {
-                        return;
-                    }
-                    resourceUpdateListenerHandler.Completed(resourceUpdateState);
-                }, progres =>
-                {
-                    float p = resourceDownloadHandles.Sum(x => x.progres) + completedResourceDoanloadHandles.Count;
-                    p /= resourceDownloadHandles.Count + completedResourceDoanloadHandles.Count;
-                    resourceUpdateListenerHandler.Progres(p);
-                });
-                resourceDownloadHandles.Add(downloadHandle);
+                resourceDownloadHandles.Add(OnStartDownloadBundleData(AppConfig.RESOURCE_SERVER_ADDRESS, bundleData));
             }
         }
 
@@ -212,6 +212,8 @@ namespace GameFramework.Resource
         {
             this.resourceStreamingHandler = null;
             this.resourceUpdateListenerHandler = null;
+            resourceDownloadHandles.Clear();
+            waitingUpdateBundleList.Clear();
         }
 
         public void SetResourceStreamingHandler(IResourceStreamingHandler resourceReaderAndWriterHandler)
@@ -238,6 +240,7 @@ namespace GameFramework.Resource
             {
                 return;
             }
+            Debug.Log(name + ":" + this.received);
             state = ResourceUpdateState.Success;
             completed(this);
         }
@@ -258,12 +261,15 @@ namespace GameFramework.Resource
             if (stream == null)
             {
                 stream = DataStream.Generate(dataLength);
+                Debug.Log("============");
             }
-            stream.Write(data);
+
+            stream.Write(data, 0, dataLength);
             if (progresCallback != null)
             {
                 progresCallback(received / (float)this.targetLength);
             }
+
             return true;
         }
 
@@ -273,7 +279,7 @@ namespace GameFramework.Resource
             resourceDownloadHandle.name = Path.GetFileName(url);
             resourceDownloadHandle.completed = completed;
             resourceDownloadHandle.progresCallback = progresCallback;
-            Runtime.StartCoroutine(StartDownloadResource(url, resourceDownloadHandle));
+            ResourceManager.Instance.StartCoroutine(StartDownloadResource(url, resourceDownloadHandle));
             return resourceDownloadHandle;
         }
         private static IEnumerator StartDownloadResource(string url, ResourceDownloadHandle resourceDownloadHandle)

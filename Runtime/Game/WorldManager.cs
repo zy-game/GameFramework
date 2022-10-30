@@ -6,7 +6,7 @@ namespace GameFramework.Game
     /// <summary>
     /// 游戏管理器
     /// </summary>
-    public sealed class WorldManager : IWorldManager
+    public sealed class WorldManager : SingletonBehaviour<WorldManager>, IWorldManager
     {
         private Dictionary<Type, IGameWorld> games = new Dictionary<Type, IGameWorld>();
 
@@ -21,25 +21,27 @@ namespace GameFramework.Game
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        public T OpenWorld<T>() where T : IGameWorld
+        public T OpenWorld<T>(string resouceModuleName) where T : IGameWorld
         {
-            return (T)OpenWorld(typeof(T));
+            return (T)OpenWorld(typeof(T), resouceModuleName);
         }
 
         /// <summary>
         /// 打开游戏
         /// </summary>
-        /// <param name="gameType"></param>
+        /// <param name="worldType"></param>
         /// <returns></returns>
-        public IGameWorld OpenWorld(Type gameType)
+        public IGameWorld OpenWorld(Type worldType, string resouceModuleName)
         {
-            if (!games.TryGetValue(gameType, out IGameWorld game))
+            if (!games.TryGetValue(worldType, out IGameWorld gameWorld))
             {
-                game = (IGameWorld)Loader.Generate(gameType);
-                games.Add(gameType, game);
+                gameWorld = (IGameWorld)Loader.Generate(worldType);
+                ((AbstractGameWorld)gameWorld).resouceModuleName = resouceModuleName;
+                games.Add(worldType, gameWorld);
             }
-            current = game;
-            return game;
+            current = gameWorld;
+            current.Awake();
+            return gameWorld;
         }
 
         /// <summary>
@@ -47,9 +49,9 @@ namespace GameFramework.Game
         /// </summary>
         /// <param name="gameTypeName"></param>
         /// <returns></returns>
-        public IGameWorld OpenWorld(string gameTypeName)
+        public IGameWorld OpenWorld(string gameTypeName, string resouceModuleName)
         {
-            return OpenWorld(Type.GetType(gameTypeName));
+            return OpenWorld(Type.GetType(gameTypeName), resouceModuleName);
         }
 
         /// <summary>
@@ -106,6 +108,7 @@ namespace GameFramework.Game
             {
                 return;
             }
+            game.Disable();
             Loader.Release(game);
             games.Remove(gameType);
         }
@@ -131,7 +134,7 @@ namespace GameFramework.Game
             games.Clear();
         }
 
-        public void Update()
+        protected override void Update()
         {
             if (current == null)
             {

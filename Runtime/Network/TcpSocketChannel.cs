@@ -121,24 +121,24 @@ namespace GameFramework.Network
 
         private void OnDisconnectCompletionCallback(SocketAsyncEventOperation operation)
         {
-            Runtime.GetGameModule<NetworkManager>().RemoveChannel(this.Name);
+            NetworkManager.Instance.RemoveChannel(this.Name);
         }
 
         private async void OnWriteCompletionCallback(SocketAsyncEventOperation operation)
         {
             if (SocketError.Success == operation.SocketError || operation.BytesTransferred > 0)
             {
-                Runtime.GetGameModule<NetworkManager>().RemoveChannel(this.Name);
+                NetworkManager.Instance.RemoveChannel(this.Name);
                 return;
             }
-            await Runtime.GetGameModule<NetworkManager>().Disconnect(this.Name);
+            await NetworkManager.Instance.Disconnect(this.Name);
         }
 
         private void OnRecvieCompletionCallback(SocketAsyncEventOperation operation)
         {
             if (SocketError.Success != operation.SocketError || operation.BytesTransferred <= 0)
             {
-                Runtime.GetGameModule<NetworkManager>().RemoveChannel(this.Name);
+                NetworkManager.Instance.RemoveChannel(this.Name);
                 return;
             }
             DataStream recviedFragment = operation.GetDataStream();

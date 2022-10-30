@@ -10,23 +10,30 @@ namespace GameFramework.Game
     /// </summary>
     public sealed class DefaultGameEntity : IEntity
     {
-        private Dictionary<Type, IComponent> components;
-
         /// <summary>
         /// 实体唯一ID
         /// </summary>
         /// <value></value>
         public string guid { get; private set; }
 
+        internal int tag { get; set; }
+
         /// <summary>
         /// 所属游戏
         /// </summary>
         /// <value></value>
-        public IGameWorld owner { get; private set; }
+        public IGameWorld owner
+        {
+            get
+            {
+                return gameWorld;
+            }
+        }
+
+        private AbstractGameWorld gameWorld;
 
         public DefaultGameEntity()
         {
-            components = new Dictionary<Type, IComponent>();
         }
 
         /// <summary>
@@ -43,14 +50,7 @@ namespace GameFramework.Game
         /// <returns></returns>
         public IComponent AddComponent(Type componentType)
         {
-            if (components.TryGetValue(componentType, out IComponent component))
-            {
-                throw GameFrameworkException.Generate("the entity is already exsit component");
-            }
-            component = (IComponent)Loader.Generate(componentType);
-            components.Add(componentType, component);
-            Context.INTERNAL_EntityComponentChange(this, components.Keys.ToArray());
-            return component;
+            return gameWorld.INTERNAL_EntityAddComponent(this, componentType);
         }
 
         /// <summary>
@@ -74,11 +74,12 @@ namespace GameFramework.Game
         /// <returns></returns>
         public IComponent GetComponent(Type componentType)
         {
-            if (components.TryGetValue(componentType, out IComponent component))
+            IComponent[] components = gameWorld.INTERNAL_GetEntityComponents(this, componentType);
+            if (components == null || components.Length <= 0)
             {
-                return component;
+                return default;
             }
-            return default;
+            return components[0];
         }
 
         /// <summary>
@@ -94,15 +95,7 @@ namespace GameFramework.Game
         /// <returns></returns>
         public IComponent[] GetComponents()
         {
-            return components.Values.ToArray();
-        }
-
-        internal static DefaultGameEntity Generate(string guid, IGameWorld game)
-        {
-            DefaultGameEntity entity = Loader.Generate<DefaultGameEntity>();
-            entity.guid = guid;
-            entity.owner = game;
-            return entity;
+            return gameWorld.INTERNAL_GetEntityComponents(this);
         }
 
         /// <summary>
@@ -112,19 +105,7 @@ namespace GameFramework.Game
         /// <returns></returns>
         public IComponent[] GetComponents(params Type[] componentTypes)
         {
-            if (componentTypes == null || componentTypes.Length <= 0 || components.Count <= 0)
-            {
-                return Array.Empty<IComponent>();
-            }
-            List<IComponent> results = new List<IComponent>();
-            for (var i = 0; i < componentTypes.Length; i++)
-            {
-                if (components.TryGetValue(componentTypes[i], out IComponent component))
-                {
-                    results.Add(component);
-                }
-            }
-            return results.ToArray();
+            return gameWorld.INTERNAL_GetEntityComponents(this, componentTypes);
         }
 
         /// <summary>
@@ -134,7 +115,7 @@ namespace GameFramework.Game
         /// <returns></returns>
         public IComponent[] GetComponents(params string[] componentTypeNames)
         {
-            if (componentTypeNames == null || componentTypeNames.Length < 0 || components.Count <= 0)
+            if (componentTypeNames == null || componentTypeNames.Length < 0)
             {
                 return Array.Empty<IComponent>();
             }
@@ -158,12 +139,7 @@ namespace GameFramework.Game
         /// <param name="componentType"></param>
         public void RemoveComponent(Type componentType)
         {
-            if (components.TryGetValue(componentType, out IComponent component))
-            {
-                Loader.Release(component);
-                components.Remove(componentType);
-                Context.INTERNAL_EntityComponentChange(this, components.Keys.ToArray());
-            }
+            gameWorld.INTERNAL_RemoveEntityComponent(this, componentType);
         }
 
         /// <summary>
@@ -177,11 +153,25 @@ namespace GameFramework.Game
         /// </summary>
         public void Release()
         {
-            foreach (KeyValuePair<Type, IComponent> item in components)
-            {
-                Loader.Release(item.Value);
-            }
-            components.Clear();
+            gameWorld = null;
+        }
+
+        public T[] GetComponents<T>() where T : IComponent
+        {
+            return GetComponents(typeof(T)).Cast<T>().ToArray();
+        }
+
+        public IComponent[] GetComponents(Type componentType)
+        {
+            return gameWorld.INTERNAL_GetEntityComponents(this, componentType);
+        }
+
+        internal static DefaultGameEntity Generate(string guid, IGameWorld game)
+        {
+            DefaultGameEntity entity = Loader.Generate<DefaultGameEntity>();
+            entity.guid = guid;
+            entity.gameWorld = (AbstractGameWorld)game;
+            return entity;
         }
     }
 }

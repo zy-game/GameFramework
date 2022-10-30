@@ -144,6 +144,7 @@ namespace GameFramework
         {
             EnsureSizeAndResize(length);
             Array.Copy(bytes, scrOffset, buffer, desOffset, length);
+            position += length;
         }
 
         public void Trim(int offset)

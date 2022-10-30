@@ -17,7 +17,7 @@ namespace GameFramework.Resource
         /// <param name="name">资源名</param>
         /// <returns>资源句柄</returns>
         /// <exception cref="NullReferenceException">不存在资源对象</exception>
-        ResHandle LoadAssetSync(string name);
+        ResHandle LoadAssetSync<T>(string name) where T : UnityEngine.Object;
 
         /// <summary>
         /// 加载资源
@@ -25,7 +25,7 @@ namespace GameFramework.Resource
         /// <param name="name">资源名</param>
         /// <returns>资源句柄</returns>
         /// <exception cref="NullReferenceException">不存在资源对象</exception>
-        Task<ResHandle> LoadAssetAsync(string name);
+        Task<ResHandle> LoadAssetAsync<T>(string name) where T : UnityEngine.Object;
 
         /// <summary>
         /// 读取文件数据
@@ -66,16 +66,18 @@ namespace GameFramework.Resource
         void DeleteFile(string fileName);
 
         /// <summary>
-        /// 检查资源更新
+        /// 检查指定的资源模块更新
         /// </summary>
+        /// <param name="moduleName"></param>
         /// <param name="progresCallback"></param>
         /// <param name="compoleted"></param>
-        void CheckoutResourceUpdate(string url, GameFrameworkAction<float> progresCallback, GameFrameworkAction<ResourceUpdateState> compoleted);
+        void CheckResourceModuleUpdate(string moduleName, GameFrameworkAction<float> progresCallback, GameFrameworkAction<ResourceUpdateState> compoleted);
 
         /// <summary>
-        /// 检查资源更新
+        /// 检查指定的资源模块更新
         /// </summary>
-        /// <typeparam name="IResourceUpdateListenerHandler"></typeparam>
-        void CheckoutResourceUpdate<TResourceUpdateListenerHandler>(string url) where TResourceUpdateListenerHandler : IResourceUpdateListenerHandler;
+        /// <typeparam name="TResoueceUpdateListenerHandler"></typeparam>
+        /// <param name="moduleName"></param>
+        void CheckResourceModuleUpdate<TResoueceUpdateListenerHandler>(string moduleName) where TResoueceUpdateListenerHandler : IResourceUpdateListenerHandler;
     }
 }

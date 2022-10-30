@@ -13,7 +13,7 @@ namespace GameFramework.Resource
     /// <summary>
     /// 资源管理器
     /// </summary>
-    public sealed class ResourceManager : IResourceManager
+    public sealed class ResourceManager : SingletonBehaviour<ResourceManager>, IResourceManager
     {
 
 
@@ -40,6 +40,7 @@ namespace GameFramework.Resource
             resourceStreamingHandler = Loader.Generate<DefaultResourceStreamingHandler>();
             resourceLoaderHandler = Loader.Generate<ResourceLoaderHandler>();
             resourceLoaderHandler.SetResourceStreamingHandler(resourceStreamingHandler);
+            resourceLoaderHandler.AddResourceModule("CommonModule");
             resourceUpdateHandler = Loader.Generate<DefaultResourceUpdateHandler>();
             resourceUpdateHandler.SetResourceStreamingHandler(resourceStreamingHandler);
         }
@@ -51,9 +52,9 @@ namespace GameFramework.Resource
         /// </summary>
         /// <param name="name">资源名</param>
         /// <returns>资源句柄</returns>
-        public ResHandle LoadAssetSync(string name)
+        public ResHandle LoadAssetSync<T>(string name) where T : UnityEngine.Object
         {
-            return resourceLoaderHandler.LoadAsset(name);
+            return resourceLoaderHandler.LoadAsset<T>(name);
         }
 
         /// <summary>
@@ -61,9 +62,9 @@ namespace GameFramework.Resource
         /// </summary>
         /// <param name="name">资源名</param>
         /// <returns>资源句柄</returns>
-        public Task<ResHandle> LoadAssetAsync(string name)
+        public Task<ResHandle> LoadAssetAsync<T>(string name) where T : UnityEngine.Object
         {
-            return resourceLoaderHandler.LoadAssetAsync(name);
+            return resourceLoaderHandler.LoadAssetAsync<T>(name);
         }
 
         /// <summary>
@@ -121,7 +122,7 @@ namespace GameFramework.Resource
         /// <summary>
         /// 轮询管理器
         /// </summary>
-        public void Update()
+        protected override void Update()
         {
             if (resourceLoaderHandler == null)
             {
@@ -150,43 +151,30 @@ namespace GameFramework.Resource
         {
             resourceStreamingHandler.WriteSync(fileName, stream);
         }
-        /// <summary>
-        /// 检查资源更新
-        /// </summary>
-        /// <param name="progresCallback"></param>
-        /// <param name="compoleted"></param>
-        public void CheckoutResourceUpdate(string url, GameFrameworkAction<float> progresCallback, GameFrameworkAction<ResourceUpdateState> compoleted)
+
+        public void CheckResourceModuleUpdate(string moduleName, GameFrameworkAction<float> progresCallback, GameFrameworkAction<ResourceUpdateState> compoleted)
         {
             DefaultResourceUpdateListenerHandle defaultResourceUpdateListenerHandle = DefaultResourceUpdateListenerHandle.Generate(progresCallback, state =>
             {
-                if (state == ResourceUpdateState.Failure)
+                if (state == ResourceUpdateState.Failure || string.IsNullOrEmpty(moduleName))
                 {
                     compoleted(state);
                     return;
                 }
-                defaultResourceUpdateListenerHandle = DefaultResourceUpdateListenerHandle.Generate(progresCallback, compoleted);
-                resourceUpdateHandler.ChekeoutHotfixResourceListUpdate(url, defaultResourceUpdateListenerHandle);
+                defaultResourceUpdateListenerHandle = DefaultResourceUpdateListenerHandle.Generate(progresCallback, state =>
+                {
+                    resourceLoaderHandler.AddResourceModule(moduleName);
+                    compoleted(state);
+                });
+                resourceUpdateHandler.ChekeoutHotfixResourceListUpdate(moduleName, defaultResourceUpdateListenerHandle);
             });
-            resourceUpdateHandler.CheckoutStreamingAssetListUpdate(defaultResourceUpdateListenerHandle);
+            resourceUpdateHandler.CheckoutStreamingAssetListUpdate(moduleName, defaultResourceUpdateListenerHandle);
         }
 
-        /// <summary>
-        /// 检查资源更新
-        /// </summary>
-        /// <typeparam name="IResourceUpdateListenerHandler"></typeparam>
-        public void CheckoutResourceUpdate<TResourceUpdateListenerHandler>(string url) where TResourceUpdateListenerHandler : IResourceUpdateListenerHandler
+        public void CheckResourceModuleUpdate<TResoueceUpdateListenerHandler>(string moduleName) where TResoueceUpdateListenerHandler : IResourceUpdateListenerHandler
         {
-            TResourceUpdateListenerHandler resourceUpdateListenerHandler = Loader.Generate<TResourceUpdateListenerHandler>();
-            CheckoutResourceUpdate(url, resourceUpdateListenerHandler.Progres, state => 
-            {
-                if (state == ResourceUpdateState.Failure)
-                {
-                    resourceUpdateListenerHandler.Completed(state);
-                    return;
-                }
-                resourceUpdateHandler.ChekeoutHotfixResourceListUpdate(url, resourceUpdateListenerHandler);
-            });
-            resourceUpdateHandler.CheckoutStreamingAssetListUpdate(resourceUpdateListenerHandler);
+            TResoueceUpdateListenerHandler resourceUpdateListenerHandler = Loader.Generate<TResoueceUpdateListenerHandler>();
+            CheckResourceModuleUpdate(moduleName, resourceUpdateListenerHandler.Progres, resourceUpdateListenerHandler.Completed);
         }
     }
 }

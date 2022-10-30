@@ -16,13 +16,13 @@ namespace GameFramework.Resource
         /// 检查包内资源是否有更新
         /// </summary>
         /// <param name="resourceUpdateListenerHandler"></param>
-        void CheckoutStreamingAssetListUpdate(IResourceUpdateListenerHandler resourceUpdateListenerHandler);
+        void CheckoutStreamingAssetListUpdate(string moduleName, IResourceUpdateListenerHandler resourceUpdateListenerHandler);
 
         /// <summary>
         /// 检查热更新资源
         /// </summary>
         /// <param name="url"></param>
         /// <param name="resourceUpdateListenerHandler"></param>
-        void ChekeoutHotfixResourceListUpdate(string url, IResourceUpdateListenerHandler resourceUpdateListenerHandler);
+        void ChekeoutHotfixResourceListUpdate(string moduleName, IResourceUpdateListenerHandler resourceUpdateListenerHandler);
     }
 }

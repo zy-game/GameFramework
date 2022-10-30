@@ -10,18 +10,43 @@ namespace GameFramework.Config
     public interface IConfigManager : IGameModule
     {
         /// <summary>
-        /// 加载配置表
+        /// 卸载配置表
         /// </summary>
         /// <param name="name"></param>
-        /// <typeparam name="T"></typeparam>
-        /// <returns></returns>
-        IConfigDatable<T> LoadConfig<T>(string name) where T : IConfig;
+        void UnloadConfig<T>(string name) where T : IConfig;
 
         /// <summary>
         /// 卸载配置表
         /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="id"></param>
+        void UnloadConfig<T>(int id) where T : IConfig;
+
+        /// <summary>
+        /// 卸载配置表
+        /// </summary>
+        /// <param name="configType"></param>
         /// <param name="name"></param>
-        void UnloadConfig(string name);
+        void UnloadConfig(Type configType, string name);
+
+        /// <summary>
+        /// 卸载配置表
+        /// </summary>
+        /// <param name="configType"></param>
+        /// <param name="id"></param>
+        void UnloadConfig(Type configType, int id);
+
+        /// <summary>
+        /// 卸载所有相同类型的配置表
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        void UnloadAllConfig<T>();
+
+        /// <summary>
+        /// 卸载所有相同类型的配置表
+        /// </summary>
+        /// <param name="configType"></param>
+        void UnloadAllConfig(Type configType);
 
         /// <summary>
         /// 获取指定的配置表
@@ -29,14 +54,31 @@ namespace GameFramework.Config
         /// <param name="name"></param>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        IConfigDatable<T> GetConfigTable<T>(string name) where T : IConfig;
+        T GetConfig<T>(string name) where T : IConfig;
 
         /// <summary>
-        /// 查询是否已经加载指定的配置表
+        /// 获取指定的配置表
         /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        T GetConfig<T>(int id) where T : IConfig;
+
+        /// <summary>
+        /// 获取指定的配置表
+        /// </summary>
+        /// <param name="configType"></param>
         /// <param name="name"></param>
         /// <returns></returns>
-        bool HasLoadConfig(string name);
+        IConfig GetConfig(Type configType, string name);
+
+        /// <summary>
+        /// 获取指定的配置表
+        /// </summary>
+        /// <param name="configType"></param>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        IConfig GetConfig(Type configType, int id);
 
         /// <summary>
         /// 清理所有配置表

@@ -21,21 +21,21 @@ namespace GameFramework.Game
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <returns></returns>
-        T OpenWorld<T>() where T : IGameWorld;
+        T OpenWorld<T>(string resouceModuleName) where T : IGameWorld;
 
         /// <summary>
         /// 打开游戏
         /// </summary>
         /// <param name="gameType"></param>
         /// <returns></returns>
-        IGameWorld OpenWorld(Type gameType);
+        IGameWorld OpenWorld(Type gameType, string resouceModuleName);
 
         /// <summary>
         /// 打开游戏
         /// </summary>
         /// <param name="gameTypeName"></param>
         /// <returns></returns>
-        IGameWorld OpenWorld(string gameTypeName);
+        IGameWorld OpenWorld(string gameTypeName, string resouceModuleName);
 
         /// <summary>
         /// 获取指定的游戏

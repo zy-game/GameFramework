@@ -1,6 +1,7 @@
 using System.IO;
 using System.Collections.Generic;
 using System.Text;
+using GameFramework.Resource;
 
 namespace GameFramework.Config
 {
@@ -83,8 +84,7 @@ namespace GameFramework.Config
         /// <returns></returns>
         public async void Load(string configName)
         {
-            Resource.ResourceManager resourceManager = Runtime.GetGameModule<Resource.ResourceManager>();
-            DataStream stream = await resourceManager.ReadFileAsync(configName);
+            DataStream stream = await ResourceManager.Instance.ReadFileAsync(configName);
             if (stream == null || stream.position <= 0)
             {
                 throw GameFrameworkException.Generate<FileNotFoundException>();
@@ -98,10 +98,9 @@ namespace GameFramework.Config
         /// <returns></returns>
         public async void Save()
         {
-            Resource.ResourceManager resourceManager = Runtime.GetGameModule<Resource.ResourceManager>();
             byte[] bytes = UTF8Encoding.UTF8.GetBytes(CatJson.JsonParser.ToJson(configs));
             DataStream stream = DataStream.Generate(bytes);
-            await resourceManager.WriteFileAsync(name, stream);
+            await ResourceManager.Instance.WriteFileAsync(name, stream);
         }
 
         /// <summary>

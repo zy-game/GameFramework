@@ -7,15 +7,23 @@ using UnityEngine.UI;
 
 namespace GameFramework.Game
 {
-    public abstract class AbstractUIFormHandler : IUIFormHandler
+    public abstract class UIHandler : IUIFormHandler
     {
         public abstract int layer { get; }
         public abstract string name { get; }
 
+        public GameObject this[string name]
+        {
+            get
+            {
+                return GetChild(name);
+            }
+        }
+
         internal GameObject gameObject { get; private set; }
         private Dictionary<string, RectTransform> childs;
 
-        public AbstractUIFormHandler()
+        public UIHandler()
         {
             childs = new Dictionary<string, RectTransform>();
         }
@@ -32,6 +40,7 @@ namespace GameFramework.Game
 
         public void Release()
         {
+            Debug.Log("release ui handle:" + this.gameObject.name);
             GameObject.DestroyImmediate(this.gameObject);
             childs.Clear();
             this.OnDestory();
@@ -44,9 +53,9 @@ namespace GameFramework.Game
 
         public void Awake()
         {
-            ResHandle resHandle = Runtime.GetGameModule<ResourceManager>().LoadAssetSync(name);
+            ResHandle resHandle = ResourceManager.Instance.LoadAssetSync<GameObject>(name);
             this.gameObject = resHandle.Generate<GameObject>();
-            RectTransform[] transforms = this.gameObject.GetComponentsInChildren<RectTransform>();
+            RectTransform[] transforms = this.gameObject.GetComponentsInChildren<RectTransform>(true);
             foreach (RectTransform item in transforms)
             {
                 if (childs.ContainsKey(item.name))
@@ -55,7 +64,7 @@ namespace GameFramework.Game
                 }
                 childs.Add(item.name, item);
             }
-            Button[] buttons = this.gameObject.GetComponentsInChildren<Button>();
+            Button[] buttons = this.gameObject.GetComponentsInChildren<Button>(true);
             foreach (Button item in buttons)
             {
                 item.onClick.RemoveAllListeners();
@@ -64,7 +73,7 @@ namespace GameFramework.Game
                     this.Notify(EventData.Generate(item.name, null));
                 });
             }
-            InputField[] inputs = this.gameObject.GetComponentsInChildren<InputField>();
+            InputField[] inputs = this.gameObject.GetComponentsInChildren<InputField>(true);
             foreach (InputField item in inputs)
             {
                 item.onEndEdit.RemoveAllListeners();
@@ -74,7 +83,7 @@ namespace GameFramework.Game
                 });
             }
 
-            Toggle[] toggles = this.gameObject.GetComponentsInChildren<Toggle>();
+            Toggle[] toggles = this.gameObject.GetComponentsInChildren<Toggle>(true);
             foreach (Toggle item in toggles)
             {
                 item.onValueChanged.RemoveAllListeners();
@@ -88,11 +97,13 @@ namespace GameFramework.Game
 
         public void Enable()
         {
+            this.gameObject.SetActive(true);
             this.OnEnable();
         }
 
-        public void Diable()
+        public void Disable()
         {
+            this.gameObject.SetActive(false);
             this.OnDisable();
         }
 

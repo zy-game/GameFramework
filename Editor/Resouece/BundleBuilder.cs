@@ -129,9 +129,10 @@ namespace GameFramework.Editor.ResoueceEditor
                     {
                         if (isAll || this.bundleListGUI.CheckoutSeletion(bundleListGUI.bundleList[i].name))
                         {
+                            bundleListGUI.bundleList[i].version++;
                             bundleBuilds.Add(new AssetBundleBuild()
                             {
-                                assetBundleName = bundleListGUI.bundleList[i].name + AppConfig.BUNDLE_EXTENSION,
+                                assetBundleName = bundleListGUI.bundleList[i].name,
                                 assetNames = bundleListGUI.bundleList[i].Paths
                             });
                         }
@@ -152,6 +153,7 @@ namespace GameFramework.Editor.ResoueceEditor
                         Delete(Path.Combine(outputPath, Utilty.GetLastDirectory(outputPath) + ".meta"));
                         Delete(Path.Combine(outputPath, Utilty.GetLastDirectory(outputPath) + ".manifest"));
                         Delete(Path.Combine(outputPath, Utilty.GetLastDirectory(outputPath) + ".manifest.meta"));
+
                     }
 
                     break;
@@ -162,6 +164,7 @@ namespace GameFramework.Editor.ResoueceEditor
                     {
                         if (isAll || this.bundleListGUI.CheckoutSeletion(bundleListGUI.bundleList[i].name))
                         {
+                            bundleListGUI.bundleList[i].version++;
                             for (int j = 0; j < bundleListGUI.bundleList[i].Count; j++)
                             {
                                 AssetDatabase.CopyAsset(bundleListGUI.bundleList[i][j].path, "Assets/Resources/files/" + Path.GetFileName(bundleListGUI.bundleList[i][j].path));
@@ -170,6 +173,7 @@ namespace GameFramework.Editor.ResoueceEditor
                     }
                     break;
             }
+            Save();
             AssetDatabase.Refresh();
         }
 

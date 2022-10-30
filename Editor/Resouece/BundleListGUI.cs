@@ -10,6 +10,7 @@ namespace GameFramework.Editor.ResoueceEditor
     class BundleListGUI
     {
         private static AssetData seletion;
+        private static List<string> moduleNames = new List<string>() { "none" };
         private bool IsPackaged;
         public BundleList bundleList { get; }
 
@@ -46,13 +47,13 @@ namespace GameFramework.Editor.ResoueceEditor
 
                     for (int i = 0; i < bundleList.Count; i++)
                     {
-                        GUILayout.BeginHorizontal(GameEditorStyle.headerBackground, GUILayout.Height(20));
+                        GUILayout.BeginHorizontal(GameEditorStyle.headerBackground, GUILayout.Height(30));
                         {
                             GUILayout.FlexibleSpace();
                             GUILayout.Space(100);
                             GUILayout.EndHorizontal();
                         }
-                        GUILayout.Space(-20);
+                        GUILayout.Space(-21);
                         GUILayout.BeginHorizontal();
                         {
                             if (!selectionBundles.TryGetValue(bundleList[i].name, out bool state))
@@ -66,7 +67,6 @@ namespace GameFramework.Editor.ResoueceEditor
                                 foldoutBundles.Add(bundleList[i].name, foldout = false);
                             }
                             foldoutBundles[bundleList[i].name] = EditorGUILayout.Foldout(foldout, bundleList[i].name);
-                            //GUILayout.Label(bundleList[i].name);
                             GUILayout.FlexibleSpace();
                             GUILayout.EndHorizontal();
                         }
@@ -74,6 +74,42 @@ namespace GameFramework.Editor.ResoueceEditor
                         {
                             Rect rect = EditorGUILayout.BeginVertical(GameEditorStyle.boxBackground);
                             {
+                                GUILayout.BeginHorizontal(EditorStyles.helpBox);
+                                {
+                                    GUILayout.FlexibleSpace();
+                                    GUILayout.Label("Module");
+                                    BundleData bundleData = bundleList[i];
+                                    bundleData.module = GUILayout.TextField(bundleData.module, "TextFieldDropDownText", GUILayout.Width(200));
+
+                                    Rect last = GUILayoutUtility.GetLastRect();
+                                    if ((Event.current.type == EventType.MouseDown && !last.Contains(Event.current.mousePosition))
+                                        || (Event.current.type == EventType.KeyDown && Event.current.keyCode == KeyCode.None))
+                                    {
+                                        if (!moduleNames.Contains(bundleData.module))
+                                        {
+                                            moduleNames.Add(bundleData.module);
+                                        }
+                                        GUI.FocusControl("");
+                                        window.Repaint();
+                                    }
+                                    GUILayout.Space(-3);
+                                    if (GUILayout.Button("", "TextFieldDropDown"))
+                                    {
+                                        GenericMenu generic = new GenericMenu();
+                                        for (int j = 0; j < moduleNames.Count; j++)
+                                        {
+                                            string name = moduleNames[j];
+                                            generic.AddItem(new GUIContent(name), name == bundleData.module, () =>
+                                            {
+                                                bundleData.module = name;
+                                            });
+                                        }
+                                        generic.ShowAsContext();
+                                    }
+
+                                    GUILayout.Space(2);
+                                    GUILayout.EndHorizontal();
+                                }
                                 DrawBundleDataListGUI(bundleList[i], window);
                                 if (Event.current.type == EventType.DragPerform && rect.Contains(Event.current.mousePosition))
                                 {
@@ -108,7 +144,7 @@ namespace GameFramework.Editor.ResoueceEditor
                             Debug.LogErrorFormat("重复资源包：", fileName);
                             continue;
                         }
-                        BundleData bundleData = new BundleData() { name = fileName, IsApk = IsPackaged };
+                        BundleData bundleData = new BundleData() { name = (fileName + AppConfig.BUNDLE_EXTENSION).ToLower(), IsApk = IsPackaged };
                         GetFileList(item, bundleData);
                         bundleList.Add(bundleData);
                     }
@@ -116,6 +152,7 @@ namespace GameFramework.Editor.ResoueceEditor
                     Event.current.Use();
                     window.Repaint();
                 }
+                GUILayout.FlexibleSpace();
                 EditorGUILayout.EndVertical();
             }
         }
@@ -233,9 +270,12 @@ namespace GameFramework.Editor.ResoueceEditor
         public List<BundleData> GetSelectionBundleData()
         {
             List<BundleData> datas = new List<BundleData>();
-            foreach (var item in selectionBundles.Keys)
+            foreach (var item in selectionBundles)
             {
-                datas.Add(bundleList.GetBundleData(item));
+                if (item.Value)
+                {
+                    datas.Add(bundleList.GetBundleData(item.Key));
+                }
             }
             return datas;
         }

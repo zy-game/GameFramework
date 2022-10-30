@@ -16,10 +16,7 @@ namespace GameFramework
     /// </summary>
     public interface IGameModule : IRefrence
     {
-        /// <summary>
-        /// 轮询模块
-        /// </summary>
-        void Update();
+
     }
 
     public interface ISerialize : IRefrence

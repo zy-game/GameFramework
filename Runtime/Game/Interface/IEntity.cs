@@ -68,6 +68,20 @@ namespace GameFramework.Game
         IComponent[] GetComponents();
 
         /// <summary>
+        /// 获取实体组件
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        T[] GetComponents<T>() where T : IComponent;
+
+        /// <summary>
+        /// 获取实体组件
+        /// </summary>
+        /// <param name="componentType"></param>
+        /// <returns></returns>
+        IComponent[] GetComponents(Type componentType);
+
+        /// <summary>
         /// 获取指定类型的组件
         /// </summary>
         /// <param name="componentTypes"></param>

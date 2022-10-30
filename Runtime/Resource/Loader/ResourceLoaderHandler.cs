@@ -7,8 +7,9 @@ using Object = UnityEngine.Object;
 using UnityEngine;
 using System.Linq;
 using GameFramework.Game;
+using GameFramework.Resource;
 
-namespace GameFramework.Resource
+namespace GameFramework
 {
     public static partial class Utilty
     {
@@ -17,9 +18,11 @@ namespace GameFramework.Resource
             handler = list.Find(x => x.name == name);
             return handler != null;
         }
-
-
     }
+}
+namespace GameFramework.Resource
+{
+
     sealed class ResourceLoaderHandler : IResourceLoaderHandler
     {
         /// <summary>
@@ -40,19 +43,21 @@ namespace GameFramework.Resource
             bundles = new List<IBundleHandler>();
         }
 
-        public ResHandle LoadAsset(string assetName)
+        public ResHandle LoadAsset<T>(string assetName) where T : UnityEngine.Object
         {
-            LoadBundleList();
             BundleData bundleData = bundleList.GetBundleDataWithAsset(assetName);
-            if (bundleData == null)
-            {
-                Debug.LogError("not find asset data:" + assetName);
-                return default;
-            }
+            GameFrameworkException.IsNull(bundleData);
             AssetData assetData = bundleData.GetAssetData(assetName);
+#if UNITY_EDITOR
+            if (Application.isEditor)
+            {
+                T asset = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(UnityEditor.AssetDatabase.GUIDToAssetPath(assetData.guid));
+                return ResHandle.GenerateHandler(null, assetName, asset);
+            }
+#endif
             if (bundles.TryGetValue(bundleData.name, out IBundleHandler handler))
             {
-                return handler.LoadAsset(assetData);
+                return handler.LoadAsset<T>(assetData);
             }
             if (bundleData.IsApk)
             {
@@ -63,23 +68,30 @@ namespace GameFramework.Resource
                 handler = HotfixBundleHandler.Generate(bundleData.name, resourceStreamingHandler);
             }
             bundles.Add(handler);
-            return handler.LoadAsset(assetData);
+            return handler.LoadAsset<T>(assetData);
         }
 
-        public async Task<ResHandle> LoadAssetAsync(string assetName)
+        public async Task<ResHandle> LoadAssetAsync<T>(string assetName) where T : UnityEngine.Object
         {
-            LoadBundleList();
             BundleData bundleData = bundleList.GetBundleDataWithAsset(assetName);
             GameFrameworkException.IsNull(bundleData);
             AssetData assetData = bundleData.GetAssetData(assetName);
+#if UNITY_EDITOR
+            if (Application.isEditor)
+            {
+                T asset = UnityEditor.AssetDatabase.LoadAssetAtPath<T>(UnityEditor.AssetDatabase.GUIDToAssetPath(assetData.guid));
+                return ResHandle.GenerateHandler(null, assetName, asset);
+            }
+#endif
+
             if (bundles.TryGetValue(bundleData.name, out IBundleHandler handler))
             {
-                return await handler.LoadAssetAsync(assetData);
+                return await handler.LoadAssetAsync<T>(assetData);
             }
             if (!loading.Contains(assetName))
             {
                 waiter.WaitOne(TimeSpan.FromSeconds(10));
-                return await LoadAssetAsync(assetName);
+                return await LoadAssetAsync<T>(assetName);
             }
             loading.Add(bundleData.name);
             if (bundleData.IsApk)
@@ -97,36 +109,7 @@ namespace GameFramework.Resource
             bundles.Add(handler);
             loading.Remove(bundleData.name);
             waiter.Set();
-            return await handler.LoadAssetAsync(assetData);
-        }
-
-        private void LoadBundleList()
-        {
-            if (bundleList != null)
-            {
-                return;
-            }
-            bundleList = new BundleList();
-            TextAsset resourceBundleListData = resourceStreamingHandler.ReadResourceDataSync<TextAsset>("files/" + AppConfig.HOTFIX_FILE_LIST_NAME);
-            if (resourceBundleListData != null)
-            {
-                Debug.Log("packaged data:" + resourceBundleListData.text);
-                BundleList resourceBundleList = BundleList.Generate(resourceBundleListData.text);
-                if (resourceBundleList != null && resourceBundleList.Count > 0)
-                {
-                    bundleList.AddRange(resourceBundleList);
-                }
-            }
-            DataStream stream = this.resourceStreamingHandler.ReadPersistentDataSync(AppConfig.HOTFIX_FILE_LIST_NAME);
-            if (stream == null || stream.position <= 0)
-            {
-                throw GameFrameworkException.Generate("read file error:" + AppConfig.HOTFIX_FILE_LIST_NAME);
-            }
-            BundleList hotfixBundleList = BundleList.Generate(stream.ToString());
-            if (hotfixBundleList != null && hotfixBundleList.Count > 0)
-            {
-                bundleList.AddRange(hotfixBundleList);
-            }
+            return await handler.LoadAssetAsync<T>(assetData);
         }
 
         public void Release()
@@ -142,8 +125,6 @@ namespace GameFramework.Resource
             this.resourceStreamingHandler = resourceStreamingHandler;
         }
 
-
-        private List<string> canUnloadList = new List<string>();
         public void Update()
         {
             IBundleHandler handler = null;
@@ -163,6 +144,31 @@ namespace GameFramework.Resource
                     waitingUnloadBundleHandler.Remove(bundleHandler);
                     Loader.Release(bundleHandler);
                 }
+            }
+        }
+
+        public void AddResourceModule(string moduleName)
+        {
+            bundleList = new BundleList();
+            TextAsset resourceBundleListData = resourceStreamingHandler.ReadResourceDataSync<TextAsset>("files/" + AppConfig.HOTFIX_FILE_LIST_NAME);
+            if (resourceBundleListData != null)
+            {
+                BundleList resourceBundleList = BundleList.Generate(resourceBundleListData.text);
+                if (resourceBundleList != null && resourceBundleList.Count > 0)
+                {
+                    bundleList.AddRange(resourceBundleList);
+                }
+            }
+            DataStream stream = this.resourceStreamingHandler.ReadPersistentDataSync(AppConfig.HOTFIX_FILE_LIST_NAME);
+            if (stream == null || stream.position <= 0)
+            {
+                Loader.Release(stream);
+                return;
+            }
+            BundleList hotfixBundleList = BundleList.Generate(stream.ToString());
+            if (hotfixBundleList != null && hotfixBundleList.Count > 0)
+            {
+                bundleList.AddRange(hotfixBundleList.GetBundleDatas(moduleName));
             }
         }
     }

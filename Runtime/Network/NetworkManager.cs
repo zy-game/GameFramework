@@ -7,7 +7,7 @@ using System;
 
 namespace GameFramework.Network
 {
-    public sealed class NetworkManager : INetworkManager
+    public sealed class NetworkManager : SingletonBehaviour<NetworkManager>, INetworkManager
     {
         private Dictionary<string, IChannel> channels;
         private List<DefaultDownloadHandler> downloadHandles;
@@ -256,7 +256,7 @@ namespace GameFramework.Network
         /// <summary>
         /// 轮询管理器
         /// </summary>
-        public void Update()
+        protected override void Update()
         {
             for (int i = downloadHandles.Count - 1; i >= 0; i--)
             {

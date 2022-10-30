@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace GameFramework.Datable
 {
-    public sealed class DatableManager : IDatableManager
+    public sealed class DatableManager : Singleton<DatableManager>, IDatableManager
     {
         private Dictionary<string, IGameDatable> datables = new Dictionary<string, IGameDatable>();
 
